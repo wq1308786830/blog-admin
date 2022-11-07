@@ -1,27 +1,46 @@
 import React from 'react';
-import {DatePicker} from "antd";
-import logo from './logo.svg';
+import loadable from 'react-loadable';
+import {createBrowserRouter, RouterProvider} from 'react-router-dom';
+import { Spin } from 'antd';
 import './App.scss';
+import moment from 'moment';
+import 'moment/locale/zh-cn';
+
+moment.locale('zh-cn');
+
+const Loading = () => (
+  <div className="loading">
+    <Spin size="large" />
+  </div>
+);
+
+const AdminMain = loadable({
+  loader: () => import('./pages/Main'),
+  loading: Loading
+});
+
+const Login = loadable({
+  loader: () => import('./pages/Login'),
+  loading: Loading
+});
+
+export const PrivateRoute = () => {
+  if (localStorage.getItem('user')) {
+    return <AdminMain />;
+  }
+
+  return <Login />;
+};
+
+const routers = createBrowserRouter([
+  { path: '/', element: <AdminMain />},
+  { path: '/admin', element: <PrivateRoute /> },
+  { path: '/loginAdmin', element: <Login /> },
+]);
 
 function App() {
   return (
-    <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.tsx</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
-      <DatePicker />
-    </div>
+    <RouterProvider router={routers} />
   );
 }
 
