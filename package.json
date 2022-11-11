@@ -18,6 +18,7 @@
     "history": "^5.3.0",
     "html-to-draftjs": "^1.5.0",
     "md5": "^2.3.0",
+    "moment": "^2.29.4",
     "react": "^18.2.0",
     "react-dom": "^18.2.0",
     "react-draft-wysiwyg": "^1.15.0",
@@ -63,7 +64,19 @@
     "@types/react-draft-wysiwyg": "^1.13.4",
     "@types/react-loadable": "^5.5.6",
     "@types/react-recaptcha": "^2.3.4",
+    "@typescript-eslint/eslint-plugin": "^5.42.1",
+    "@typescript-eslint/parser": "^5.42.1",
     "craco-antd": "^2.0.0",
+    "eslint": "^8.27.0",
+    "eslint-config-airbnb": "^19.0.4",
+    "eslint-config-airbnb-typescript": "^17.0.0",
+    "eslint-config-prettier": "^8.5.0",
+    "eslint-import-resolver-alias": "^1.1.2",
+    "eslint-plugin-import": "^2.26.0",
+    "eslint-plugin-jsx-a11y": "^6.6.1",
+    "eslint-plugin-react": "^7.31.10",
+    "eslint-plugin-react-hooks": "^4.6.0",
+    "prettier": "^2.7.1",
     "sass": "^1.56.0"
   }
 }

@@ -1,4 +1,4 @@
-import {DELETE, GET} from '../utils/request';
+import { DELETE, GET } from '@/utils/request';
 
 function getCategories(fatherId: any) {
   return GET('/category/getCategories', { fatherId });
@@ -30,5 +30,5 @@ export default {
   getArticleList,
   getArticleDetail,
   getArticleRecommendLinks,
-  deleteCategory
+  deleteCategory,
 };

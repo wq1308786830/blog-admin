@@ -1,32 +1,41 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { Button, Cascader, Input, Layout, message, Switch } from 'antd';
-import {useParams} from "react-router-dom";
+import { useParams } from 'react-router-dom';
 import { ContentState, convertToRaw, EditorState } from 'draft-js';
 import { Editor } from 'react-draft-wysiwyg';
 import draftToHtml from 'draftjs-to-html';
 import htmlToDraft from 'html-to-draftjs';
 import MonacoEditor from 'react-monaco-editor';
-import config from '../../helpers/config';
-import AdminServices from '../../services/AdminServices';
-import BlogServices from '../../services/BlogServices';
+import ReactMarkdown from 'react-markdown';
+import config from '@/helpers/config';
+import AdminServices from '@/services/AdminServices';
+import BlogServices from '@/services/BlogServices';
 import './index.scss';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
 
-const ReactMarkdown = require('react-markdown');
-
+const handleOptions = (data: any, optionData: any[]) => {
+  const newOptionData = optionData;
+  for (let i = 0; i < data.length; i += 1) {
+    newOptionData[i] = { value: data[i].id, label: data[i].name };
+    if (data[i].subCategory && data[i].subCategory.length) {
+      handleOptions(data[i].subCategory, (newOptionData[i].children = []));
+    }
+  }
+  return newOptionData;
+};
 interface States {
-  title: string,
-  options: any[],
-  category: any[],
-  editor: any,
-  textType: 'md' | 'html',
-  editorState: any,
-  markdownContent: string,
-  articleId: number,
-  categoryId: number
+  title: string;
+  options: any[];
+  category: any[];
+  editor: any;
+  textType: 'md' | 'html';
+  editorState: any;
+  markdownContent: string;
+  articleId: number;
+  categoryId: number;
 }
 function Index() {
-  const {categoryId, articleId} = useParams();
+  const { categoryId, articleId } = useParams();
   const [states, setStates] = useState<States>({
     title: '',
     options: [],
@@ -36,8 +45,67 @@ function Index() {
     editorState: null,
     markdownContent: '',
     articleId: articleId ? parseInt(articleId, 10) : 0,
-    categoryId: categoryId ? +categoryId : 0
+    categoryId: categoryId ? +categoryId : 0,
   });
+
+  // get category select options data.
+  const getAllCategories = async () => {
+    const resp: any = await BlogServices.getAllCategories().catch((err: any) => {
+      message.error(`错误：${err}`);
+      throw err;
+    });
+    if (resp.success) {
+      setStates((prev) => ({ ...prev, options: handleOptions(resp.data, []) }));
+    } else {
+      message.warning(resp.msg);
+    }
+  };
+
+  /**
+   * 解析html文章展示
+   * @param articleDetail
+   */
+  const initHtmlArticle = (articleDetail: any) => {
+    const html = articleDetail ? articleDetail.content : '';
+    const contentBlock = htmlToDraft(html);
+    if (contentBlock) {
+      const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks);
+      const editorState = EditorState.createWithContent(contentState);
+      setStates((prev) => ({ ...prev, editorState }));
+    }
+  };
+
+  /**
+   * 解析文档展示
+   * @param detail
+   */
+  const initArticle = (detail: any) => {
+    if (detail.text_type === 'md') {
+      setStates((prev) => ({ ...prev, markdownContent: detail.content }));
+    } else if (detail.text_type === 'html') {
+      initHtmlArticle(detail);
+    }
+
+    setStates((prev) => ({
+      ...prev,
+      title: detail.title,
+      textType: detail.text_type,
+      category: detail.category ? Object.values(detail.category) : [],
+    }));
+  };
+
+  const getArticleDetail = async () => {
+    const { articleId: artId } = states;
+    if (!articleId) return;
+    const resp = await BlogServices.getArticleDetail(artId).catch((err: any) =>
+      message.error(`错误：${err}`)
+    );
+    if (resp.success) {
+      initArticle(resp.data);
+    } else {
+      message.warning(resp.msg);
+    }
+  };
 
   useEffect(() => {
     const categories = getAllCategories();
@@ -46,19 +114,35 @@ function Index() {
   }, []);
 
   const onCascaderChange = (value: any[]) => {
-    setStates(prev => ({...prev, category: value, categoryId: value[value.length - 1]}));
-  }
+    setStates((prev) => ({ ...prev, category: value, categoryId: value[value.length - 1] }));
+  };
 
   const onEditorStateChange = (editorState: any) => {
-    setStates(prev => ({ ...prev, editorState }));
+    setStates((prev) => ({ ...prev, editorState }));
   };
 
   const onInputChange = (e: any) => {
-    setStates(prev => ({ ...prev, title: e.target.value }));
+    setStates((prev) => ({ ...prev, title: e.target.value }));
+  };
+
+  const publish = async (body: any) => {
+    const resp: any = await AdminServices.publishArticle(body);
+    if (resp.success) {
+      message.success('发布成功！');
+    } else {
+      message.warning(resp.msg);
+    }
   };
 
   const onClickPublish = () => {
-    const { title, articleId, categoryId, editorState, textType, markdownContent } = states;
+    const {
+      title,
+      articleId: artId,
+      categoryId: cateId,
+      editorState,
+      textType,
+      markdownContent,
+    } = states;
     let content = '';
     if (textType === 'md') {
       content = markdownContent;
@@ -69,47 +153,21 @@ function Index() {
 
     const body: any = {
       title,
-      categoryId,
+      categoryId: cateId,
       content,
-      textType
+      textType,
     };
 
     if (articleId) {
-      body.id = articleId;
+      body.id = artId;
     }
     publish(body);
   };
 
   const onEditorChange = (newValue: string, e: any) => {
     window.console.log('onChange', newValue, e);
-    setStates(prev => ({ ...prev, markdownContent: newValue }));
-  }
-
-  const getArticleDetail = async () => {
-    const { articleId } = states;
-    if (!articleId) return;
-    const resp = await BlogServices.getArticleDetail(articleId).catch((err: any) =>
-      message.error(`错误：${err}`)
-    );
-    if (resp.success) {
-      initArticle(resp.data);
-    } else {
-      message.warning(resp.msg);
-    }
-  }
-
-  // get category select options data.
-  const getAllCategories = async () => {
-    const resp: any = await BlogServices.getAllCategories().catch((err: any) => {
-      message.error(`错误：${err}`);
-      throw err;
-    });
-    if (resp.success) {
-      setStates(prev => ({ ...prev, options: handleOptions(resp.data, []) }));
-    } else {
-      message.warning(resp.msg);
-    }
-  }
+    setStates((prev) => ({ ...prev, markdownContent: newValue }));
+  };
 
   const uploadImageCallBack = (file: any) =>
     new Promise((resolve, reject) => {
@@ -129,80 +187,27 @@ function Index() {
       });
     });
 
-  const editorDidMount = (editor: any) => {
-    window.addEventListener('resize', updateDimensions);
-    setStates(prev => ({ ...prev, editor }));
-    editor.layout();
-  }
-
   const updateDimensions = () => {
     const { editor } = states;
     editor.layout();
-  }
+  };
 
-  /**
-   * 解析html文章展示
-   * @param articleDetail
-   */
-  const initHtmlArticle = (articleDetail: any) => {
-    const html = articleDetail ? articleDetail.content : '';
-    const contentBlock = htmlToDraft(html);
-    if (contentBlock) {
-      const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks);
-      const editorState = EditorState.createWithContent(contentState);
-      setStates(prev => ({ ...prev, editorState }));
-    }
-  }
-
-  /**
-   * 解析文档展示
-   * @param detail
-   */
-  const initArticle = (detail: any) => {
-    if (detail.text_type === 'md') {
-      setStates(prev => ({ ...prev, markdownContent: detail.content }));
-    } else if (detail.text_type === 'html') {
-      initHtmlArticle(detail);
-    }
-
-    setStates(prev => ({
-      ...prev,
-      title: detail.title,
-      textType: detail.text_type,
-      category: detail.category ? Object.values(detail.category) : []
-    }));
-  }
-
-  const publish = async (body: any) => {
-    const resp: any = await AdminServices.publishArticle(body);
-    if (resp.success) {
-      message.success('发布成功！');
-    } else {
-      message.warning(resp.msg);
-    }
-  }
-
-  const handleOptions = (data: any, optionData: any[]) => {
-    const newOptionData = optionData;
-    for (let i = 0; i < data.length; i++) {
-      newOptionData[i] = { value: data[i].id, label: data[i].name };
-      if (data[i].subCategory && data[i].subCategory.length) {
-        handleOptions(data[i].subCategory, (newOptionData[i].children = []));
-      }
-    }
-    return newOptionData;
-  }
+  const editorDidMount = (editor: any) => {
+    window.addEventListener('resize', updateDimensions);
+    setStates((prev) => ({ ...prev, editor }));
+    editor.layout();
+  };
 
   const editorChanged = (checked: boolean) => {
-    setStates(prev => ({
+    setStates((prev) => ({
       ...prev,
-      textType: checked ? 'md' : 'html'
+      textType: checked ? 'md' : 'html',
     }));
-  }
+  };
 
   const editorConfig = {
     renderSideBySide: false,
-    selectOnLineNumbers: true
+    selectOnLineNumbers: true,
   };
   return (
     <Layout className="ArticleEdit">
@@ -210,7 +215,7 @@ function Index() {
         style={{
           marginBottom: '1rem',
           display: 'flex',
-          justifyContent: 'space-between'
+          justifyContent: 'space-between',
         }}
       >
         <Input.Group compact>
@@ -240,7 +245,7 @@ function Index() {
           checked={states.textType === 'md'}
         />
       </div>
-      {states.textType === 'md' ? (
+      {states?.textType === 'md' ? (
         <div className="markdown-container">
           <div className="monaco-container">
             <MonacoEditor
@@ -253,7 +258,7 @@ function Index() {
             />
           </div>
           <div className="preview-container">
-            <ReactMarkdown source={states.markdownContent} />
+            <ReactMarkdown>{states.markdownContent}</ReactMarkdown>
           </div>
         </div>
       ) : (
@@ -265,8 +270,8 @@ function Index() {
           toolbar={{
             image: {
               uploadCallback: uploadImageCallBack,
-              previewImage: true
-            }
+              previewImage: true,
+            },
           }}
           onEditorStateChange={onEditorStateChange}
         />

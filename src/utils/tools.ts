@@ -36,9 +36,7 @@ export function parseObj2SearchParams(obj: any) {
   let searchParams = '';
   if (obj !== null && obj !== undefined) {
     searchParams = Object.keys(obj)
-      .map(key => {
-        return `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`;
-      })
+      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`)
       .join('&');
   }
 

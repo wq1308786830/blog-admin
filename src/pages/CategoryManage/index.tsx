@@ -1,27 +1,41 @@
-import React, {useEffect, useRef, useState} from 'react';
+import React, { useEffect, useRef, useState } from 'react';
 import { Button, message, Select } from 'antd';
 import CategoryModal from './CategoryModal';
 import BlogServices from '../../services/BlogServices';
 import './index.scss';
 
 interface States {
-  curId: any[],
-  children1: any[],
-  children2: any[],
-  children3: any[],
-  categoryData: any[]
+  curId: any[];
+  children1: any[];
+  children2: any[];
+  children3: any[];
+  categoryData: any[];
 }
 const { Option } = Select;
 let categoryTemp: [] | null = null; // category cache data.
 function Index() {
-  const categoryModal = useRef<{setStates: Function}>();
+  const categoryModal = useRef<{ setStates: Function }>();
   const [states, setStates] = useState<States>({
     curId: [],
     children1: [],
     children2: [],
     children3: [],
-    categoryData: []
+    categoryData: [],
   });
+
+  // get all categories data in json string.
+  const getAllCategories = async () => {
+    const data = await BlogServices.getAllCategories().catch((e: any) =>
+      message.error(`错误：${e}`)
+    );
+    if (data.success) {
+      let children = data.data.map((item: any) => <Option key={item.id}>{item.name}</Option>);
+      setStates((prev) => ({ ...prev, children1: children, categoryData: data.data }));
+      children = null;
+    } else {
+      message.warning(data.msg);
+    }
+  };
 
   useEffect(() => {
     getAllCategories();
@@ -44,73 +58,6 @@ function Index() {
       }
       return categoryTemp;
     });
-  }
-
-  // get all categories data in json string.
-  const getAllCategories = async () => {
-    const data = await BlogServices.getAllCategories().catch((e: any) => message.error(`错误：${e}`));
-    if (data.success) {
-      let children = data.data.map((item: any) => <Option key={item.id}>{item.name}</Option>);
-      setStates(prev => ({ ...prev, children1: children, categoryData: data.data }));
-      children = null;
-    } else {
-      message.warning(data.msg);
-    }
-  }
-
-  const handleChange1 = (value: any) => {
-    const { curId } = states;
-    const childrenIn = handleChangeInner(value);
-    setStates(prev => ({ ...prev, children2: childrenIn }));
-    if (parseInt(value, 10)) {
-      curId.splice(
-        0 /* start position */,
-        curId.length /* delete count */,
-        value /* insert value */
-      );
-      setStates(prev => ({ ...prev, curId }));
-    } else {
-      // set first `curId` item as a default value `0` when `value` equals `0`.
-      setStates(prev => ({ ...prev, curId: [0] }));
-    }
-  };
-
-  const handleChange2 = (value: any) => {
-    const { curId } = states;
-    const childrenIn = handleChangeInner(value);
-    setStates(prev => ({ ...prev, children3: childrenIn }));
-    if (parseInt(value, 10)) {
-      curId.splice(1, curId.length - 1, value);
-      setStates(prev => ({ ...prev, curId }));
-    } else {
-      // push the last item of `curId` array as a new item into
-      // `curId` when `value` param equals `0`.
-      setStates(prev => ({ ...prev, curId: curId.concat(curId[curId.length - 1]) }));
-    }
-  };
-
-  const handleChange3 = (value: any) => {
-    const { curId } = states;
-    if (parseInt(value, 10)) {
-      curId.splice(2, curId.length - 2, value);
-      setStates(prev => ({ ...prev, curId: curId }));
-    } else {
-      // push the last item of `curId` array as a new item into
-      // `curId` when `value` param equals `0`.
-      setStates(prev => ({ ...prev, curId: curId.concat(curId[curId.length - 1]) }));
-      categoryModal.current?.setStates({ visible: true });
-      categoryModal.current?.setStates({ categoryName: '' });
-    }
-  };
-
-  const delCategory = async () => {
-    const { curId } = states;
-    const data = await BlogServices.deleteCategory(curId[curId.length - 1]).catch(e => message.error(`错误：${e}`));
-    if (data.success) {
-      message.warning('删除成功');
-    } else {
-      message.warning(data.msg);
-    }
   };
 
   const handleChangeInner = (value: string) => {
@@ -119,13 +66,14 @@ function Index() {
       const { categoryData } = states;
       getChildren(value, categoryData);
       if (categoryTemp) {
-        categoryTemp && categoryTemp.forEach((item: any) =>
-          childrenIn.push(
-            <Option key={`${item.id}s`} value={item.id}>
-              {item.name}
-            </Option>
-          )
-        );
+        categoryTemp &&
+          categoryTemp.forEach((item: any) =>
+            childrenIn.push(
+              <Option key={`${item.id}s`} value={item.id}>
+                {item.name}
+              </Option>
+            )
+          );
       }
       return childrenIn;
     }
@@ -133,7 +81,64 @@ function Index() {
     categoryModal.current?.setStates({ visible: true });
     categoryModal.current?.setStates({ categoryName: '' });
     return childrenIn;
-  }
+  };
+
+  const handleChange1 = (value: any) => {
+    const { curId } = states;
+    const childrenIn = handleChangeInner(value);
+    setStates((prev) => ({ ...prev, children2: childrenIn }));
+    if (parseInt(value, 10)) {
+      curId.splice(
+        0 /* start position */,
+        curId.length /* delete count */,
+        value /* insert value */
+      );
+      setStates((prev) => ({ ...prev, curId }));
+    } else {
+      // set first `curId` item as a default value `0` when `value` equals `0`.
+      setStates((prev) => ({ ...prev, curId: [0] }));
+    }
+  };
+
+  const handleChange2 = (value: any) => {
+    const { curId } = states;
+    const childrenIn = handleChangeInner(value);
+    setStates((prev) => ({ ...prev, children3: childrenIn }));
+    if (parseInt(value, 10)) {
+      curId.splice(1, curId.length - 1, value);
+      setStates((prev) => ({ ...prev, curId }));
+    } else {
+      // push the last item of `curId` array as a new item into
+      // `curId` when `value` param equals `0`.
+      setStates((prev) => ({ ...prev, curId: curId.concat(curId[curId.length - 1]) }));
+    }
+  };
+
+  const handleChange3 = (value: any) => {
+    const { curId } = states;
+    if (parseInt(value, 10)) {
+      curId.splice(2, curId.length - 2, value);
+      setStates((prev) => ({ ...prev, curId }));
+    } else {
+      // push the last item of `curId` array as a new item into
+      // `curId` when `value` param equals `0`.
+      setStates((prev) => ({ ...prev, curId: curId.concat(curId[curId.length - 1]) }));
+      categoryModal.current?.setStates({ visible: true });
+      categoryModal.current?.setStates({ categoryName: '' });
+    }
+  };
+
+  const delCategory = async () => {
+    const { curId } = states;
+    const data = await BlogServices.deleteCategory(curId[curId.length - 1]).catch((e) =>
+      message.error(`错误：${e}`)
+    );
+    if (data.success) {
+      message.warning('删除成功');
+    } else {
+      message.warning(data.msg);
+    }
+  };
 
   const { children1, children2, children3, curId } = states;
   return (

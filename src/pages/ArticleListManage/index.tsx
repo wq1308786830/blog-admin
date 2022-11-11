@@ -1,8 +1,8 @@
-import React, {useEffect, useState} from 'react';
+import React, { useEffect, useState } from 'react';
 import { Link } from 'react-router-dom';
 import { Avatar, Button, Cascader, DatePicker, Input, List, message, Popconfirm, Spin } from 'antd';
-import AdminServices from '../../services/AdminServices';
-import BlogServices from '../../services/BlogServices';
+import AdminServices from '@/services/AdminServices';
+import BlogServices from '@/services/BlogServices';
 import './index.scss';
 
 interface States {
@@ -11,7 +11,10 @@ interface States {
   showLoadingMore: boolean;
   category: [];
   data: {
-    id: any;category_id: any;title: string;description: string
+    id: any;
+    category_id: any;
+    title: string;
+    description: string;
   }[];
   pageIndex: number;
   options: [];
@@ -19,11 +22,29 @@ interface States {
     categoryId: string;
     dateRange: any;
     text: string;
-  }
+  };
 }
+
+/**
+ * The recursive function to change option's key name.
+ * @param data:input option array data.
+ * @param optionData:output option array data.
+ * @returns optionData: output option array data.
+ */
+const handleOptions = (data: any, optionData: any) => {
+  const newOptionData = optionData;
+  for (let i = 0; i < data.length; i += 1) {
+    newOptionData[i] = { value: data[i].id, label: data[i].name };
+    if (data[i].subCategory && data[i].subCategory.length) {
+      handleOptions(data[i].subCategory, (newOptionData[i].children = []));
+    }
+  }
+  return optionData;
+};
+
 function Index() {
   const [states, setStates] = useState<States>({
-    loading: true,
+    loading: false,
     loadingMore: false,
     showLoadingMore: true,
     category: [],
@@ -33,50 +54,23 @@ function Index() {
     cOptions: {
       categoryId: '',
       dateRange: [],
-      text: ''
-    }
+      text: '',
+    },
   });
 
-  useEffect(() => {
-    const { cOptions, pageIndex } = states;
-    getAllCategories();
-    getArticlesData(cOptions, pageIndex, (res: any) => {
-      if (res.length < 2) {
-        setStates(prev => ({ ...prev, showLoadingMore: false, loading: false,
-          data: res }));
-      }
-    });
-  }, []);
-
-  const onCascaderChange = (value: any[]) => {
-    changeSelectState();
-    setStates((prev: any) => ({
-      ...prev,
-      category: value,
-      cOptions: { ...prev.cOptions, categoryId: value[value.length - 1] }
-    }));
-  };
-
-  const onRangePickerChange = (dates: any) => {
-    changeSelectState();
-    setStates((prev: any) => ({
-        ...prev,
-        dateRange: dates,
-        cOptions: {
-          ...prev.cOptions,
-          dateRange: [dates[0].unix(), dates[1].unix()]
-        }
-      })
+  // get category select options data.
+  const getAllCategories = async () => {
+    const resp = await BlogServices.getAllCategories().catch((err: any) =>
+      message.error(`错误：${err}`)
     );
-  };
-
-  const onInputChange = (e: any) => {
-    e.persist();
-    const { cOptions } = states;
-    changeSelectState();
-    setStates(prev => ({
-      ...prev, text: e.target.value, cOptions: { ...cOptions, text: e.target.value }
-    }));
+    if (resp.success) {
+      setStates((prev) => ({
+        ...prev,
+        options: handleOptions(resp.data, []),
+      }));
+    } else {
+      message.warning(resp.msg);
+    }
   };
 
   /**
@@ -84,27 +78,87 @@ function Index() {
    *  callback function will deal response data.
    */
   const getArticlesData = async (option: any, pageIndex: number, callback: Function) => {
-    const resp = await AdminServices.getArticles(option, pageIndex).catch((err: any) =>
-      message.error(`错误：${err}`)
-    );
+    setStates((prev) => ({ ...prev, loading: true }));
+    const resp = await AdminServices.getArticles(option, pageIndex).catch((err: any) => {
+      setStates((prev) => ({ ...prev, loading: false }));
+      return message.error(`错误：${err}`);
+    });
+    setStates((prev) => ({ ...prev, loading: false }));
     if (resp.success) {
       callback(resp.data);
     } else {
       callback([]);
     }
-  }
+  };
+
+  useEffect(() => {
+    getAllCategories();
+    getArticlesData([], 0, (res: any) => {
+      if (res.length < 2) {
+        setStates((prev) => ({
+          ...prev,
+          showLoadingMore: false,
+          loading: false,
+          data: res,
+        }));
+      }
+    });
+  }, []);
+
+  // change pageIndex number and needSelect status when selected condition changes.
+  const changeSelectState = () => {
+    const { pageIndex } = states;
+    if (pageIndex > 0) {
+      setStates((prev) => ({
+        ...prev,
+        pageIndex: 0,
+      }));
+    }
+  };
+
+  const onCascaderChange = (value: any[]) => {
+    changeSelectState();
+    setStates((prev: any) => ({
+      ...prev,
+      category: value,
+      cOptions: { ...prev.cOptions, categoryId: value[value.length - 1] },
+    }));
+  };
+
+  const onRangePickerChange = (dates: any) => {
+    changeSelectState();
+    setStates((prev: any) => ({
+      ...prev,
+      dateRange: dates,
+      cOptions: {
+        ...prev.cOptions,
+        dateRange: [dates[0].unix(), dates[1].unix()],
+      },
+    }));
+  };
+
+  const onInputChange = (e: any) => {
+    e.persist();
+    const { cOptions } = states;
+    changeSelectState();
+    setStates((prev) => ({
+      ...prev,
+      text: e.target.value,
+      cOptions: { ...cOptions, text: e.target.value },
+    }));
+  };
 
   const onSearchClick = () => {
     const { cOptions, pageIndex } = states;
     getArticlesData(cOptions, pageIndex, (res: any) => {
       if (res.length < 2) {
-        setStates(prev => ({ ...prev, showLoadingMore: false}));
+        setStates((prev) => ({ ...prev, showLoadingMore: false }));
       }
-      setStates(prev => ({
+      setStates((prev) => ({
         ...prev,
         showLoadingMore: true,
         loading: false,
-        data: res
+        data: res,
       }));
     });
   };
@@ -112,49 +166,27 @@ function Index() {
   // handle load more button click event.
   const onLoadMore = () => {
     const { cOptions, data, pageIndex } = states;
-    setStates(prev => ({
+    setStates((prev) => ({
       ...prev,
       loadingMore: true,
-      pageIndex: pageIndex + 1
+      pageIndex: pageIndex + 1,
     }));
     getArticlesData(cOptions, pageIndex, (res: any) => {
       if (res.length < 2) {
-        setStates(prev => ({
+        setStates((prev) => ({
           ...prev,
           pageIndex: pageIndex - 1,
-          showLoadingMore: false
+          showLoadingMore: false,
         }));
       }
       const moreData: any = data.concat(res);
-      setStates(prev => ({
+      setStates((prev) => ({
         ...prev,
         loadingMore: false,
-        data: moreData
+        data: moreData,
       }));
       window.dispatchEvent(new Event('resize'));
     });
-  };
-
-  // get category select options data.
-  const getAllCategories = async () => {
-    const resp = await BlogServices.getAllCategories().catch((err: any) => message.error(`错误：${err}`));
-    if (resp.success) {
-      setStates(prev => ({
-        ...prev, options: handleOptions(resp.data, [])
-      }));
-    } else {
-      message.warning(resp.msg);
-    }
-  }
-
-  // change pageIndex number and needSelect status when selected condition changes.
-  const changeSelectState = () => {
-    const { pageIndex } = states;
-    if (pageIndex > 0) {
-      setStates(prev => ({
-        ...prev, pageIndex: 0
-      }));
-    }
   };
 
   const confirm = async (article: any) => {
@@ -164,44 +196,32 @@ function Index() {
     );
     if (resp.success) {
       const deletedItem: any = data.filter((item: any) => item.id !== article.id);
-      setStates(prev => ({
-        ...prev, data: deletedItem
+      setStates((prev) => ({
+        ...prev,
+        data: deletedItem,
       }));
       message.success(`博文${article.title}，删除成功！`);
     }
   };
 
-  /**
-   * The recursive function to change option's key name.
-   * @param data:input option array data.
-   * @param optionData:output option array data.
-   * @returns optionData: output option array data.
-   */
-  const handleOptions = (data: any, optionData: any) => {
-    const newOptionData = optionData;
-    for (let i = 0; i < data.length; i++) {
-      newOptionData[i] = { value: data[i].id, label: data[i].name };
-      if (data[i].subCategory && data[i].subCategory.length) {
-        handleOptions(data[i].subCategory, (newOptionData[i].children = []));
-      }
-    }
-    return optionData;
-  }
   const loadMore = states.showLoadingMore ? (
     <div
       style={{
         textAlign: 'center',
         marginTop: 12,
         height: 32,
-        lineHeight: '32px'
+        lineHeight: '32px',
       }}
     >
       {states.loadingMore && <Spin />}
-      {!states.loadingMore && states.data.length ? <Button onClick={onLoadMore}>加载更多</Button> : null}
+      {!states.loadingMore && states.data.length ? (
+        <Button onClick={onLoadMore}>加载更多</Button>
+      ) : null}
     </div>
   ) : (
     <div className="ant-list-empty-text">没更多数据了</div>
   );
+
   return (
     <div>
       <Input.Group compact style={{ textAlign: 'center', paddingBottom: '2em' }}>
@@ -236,12 +256,12 @@ function Index() {
         itemLayout="horizontal"
         loadMore={loadMore}
         dataSource={states.data}
-        renderItem={item => (
+        renderItem={(item) => (
           <List.Item
             actions={[
               <Link
-                state={{articleDetail: item, category: states.category, options: states.options}}
-                to={`/admin/articleEdit/${item.category_id}/${item.id}`}
+                state={{ articleDetail: item, category: states.category, options: states.options }}
+                to={`/articleEdit/${item.category_id}/${item.id}`}
               >
                 编辑
               </Link>,
@@ -251,8 +271,8 @@ function Index() {
                 okText="确定"
                 cancelText="取消"
               >
-                <Button>删除</Button>
-              </Popconfirm>
+                <Button type="link">删除</Button>
+              </Popconfirm>,
             ]}
           >
             <List.Item.Meta
@@ -277,4 +297,3 @@ function Index() {
 }
 
 export default Index;
-
