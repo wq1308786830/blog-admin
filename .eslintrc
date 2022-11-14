@@ -13,74 +13,16 @@
     "jest": true
   },
   "settings": {
-    "import/parsers": {
-      "@typescript-eslint/parser": [".ts", ".tsx"]
-    },
     "import/resolver": {
       "alias": {
         "map": [["@", "./src"]],
-        "extensions": [".ts", ".js", ".tsx"]
-      },
-      "node": {
         "extensions": [".tsx", ".ts", ".js", ".jsx"]
       }
-    },
-    "import/extensions": [".tsx", ".ts", ".js", ".jsx"]
+    }
   },
   "rules": {
-    "react/jsx-filename-extension": [1, { "extensions": [".tsx", ".ts", ".js", ".jsx"] }],
-    "import/extensions": [
-      "error",
-      "ignorePackages",
-      {
-        "js": "never",
-        "jsx": "never",
-        "ts": "never",
-        "tsx": "never"
-      }
-    ],
-//    "jsx-a11y/anchor-is-valid": "off",
-//    "class-methods-use-this": "off",
-//    "react/jsx-wrap-multilines": ["error", { "arrow": true, "return": true, "declaration": true }],
-//    "react/forbid-prop-types": "off",
-//    "no-plusplus": "off",
     "react-hooks/rules-of-hooks": "error",
     "react-hooks/exhaustive-deps": "warn",
-//    "func-names": "off",
-//    "prettier/prettier": ["error"],
     "max-len": ["error", { "code": 180 }]
-//    "prefer-promise-reject-errors": ["off"],
-//    "react/jsx-filename-extension": ["off"],
-//    "react/prop-types": ["warn"],
-//    "no-return-assign": ["off"],
-//    "react/jsx-one-expression-per-line": ["off"],
-//    "radix": 2,
-//    // 'no-lonely-if': "error",
-//    "semi": ["error", "always"],
-//    "quotes": ["error", "single"],
-//    "curly": ["error", "all"],
-//    "object-shorthand": 2,
-//    "key-spacing": 1,
-//    "no-var": "error",
-//    "prefer-const": "error",
-//    "func-call-spacing": "off",
-//    "space-before-function-paren": [
-//      "error",
-//      {
-//        "anonymous": "always",
-//        "named": "never",
-//        "asyncArrow": "always"
-//      }
-//    ],
-//    "arrow-parens": ["error", "as-needed"], // allow paren-less arrow functions
-//    "generator-star-spacing": 0, // allow async-await
-//    "indent": [
-//      "error",
-//      2,
-//      {
-//        "SwitchCase": 1,
-//        "flatTernaryExpressions": true
-//      }
-//    ]
   }
 }

@@ -1,26 +1,26 @@
 import React, { useEffect, useImperativeHandle, useState } from 'react';
 import { Input, message, Modal } from 'antd';
-import AdminServices from '../../services/AdminServices';
+import AdminServices from '@/services/AdminServices';
 
 interface CategoryModalProps {
   ref: boolean;
   data: {
     categoryId: string;
     level: number;
-  }
+  };
 }
 function CategoryModal(props: CategoryModalProps, ref: any) {
   const { data } = props;
   const [states, setStates] = useState({
     visible: false,
     confirmLoading: false,
-    fatherId: props.data.categoryId,
-    level: props.data.level,
-    categoryName: ''
+    fatherId: data.categoryId,
+    level: data.level,
+    categoryName: '',
   });
 
   useEffect(() => {
-    setStates(prev => ({ ...prev, level: data.level, fatherId: data.categoryId }))
+    setStates((prev) => ({ ...prev, level: data.level, fatherId: data.categoryId }));
   }, [data]);
 
   useImperativeHandle(ref, () => ({
@@ -29,12 +29,13 @@ function CategoryModal(props: CategoryModalProps, ref: any) {
 
   const handleOk = async () => {
     const { fatherId, level, categoryName } = states;
-    const data = await AdminServices.addCategory(fatherId, level, categoryName)
-      .catch((e: any) => message.error(`错误：${e}`));
-    if (data.success) {
+    const resp = await AdminServices.addCategory(fatherId, level, categoryName).catch((e: any) =>
+      message.error(`错误：${e}`)
+    );
+    if (resp.success) {
       message.success('添加成功');
     } else {
-      message.warning(data.msg);
+      message.warning(resp.msg);
     }
   };
 
@@ -49,12 +50,12 @@ function CategoryModal(props: CategoryModalProps, ref: any) {
       open={states.visible}
       confirmLoading={confirmLoading}
       onOk={handleOk}
-      onCancel={() => setStates(prev => ({ ...prev, visible: false }))}
+      onCancel={() => setStates((prev) => ({ ...prev, visible: false }))}
     >
       <p>
         <Input
           value={states.categoryName}
-          onChange={e => setStates(prev => ({ ...prev, categoryName: e.target.value }))}
+          onChange={(e) => setStates((prev) => ({ ...prev, categoryName: e.target.value }))}
           placeholder="类目名"
         />
       </p>

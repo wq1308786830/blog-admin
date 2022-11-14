@@ -1,4 +1,6 @@
 const CracoAntDesignPlugin = require('craco-antd');
+const MonacoWebpackPlugin = require('monaco-editor-webpack-plugin');
+const path = require('path');
 
 module.exports = {
   plugins: [
@@ -10,5 +12,16 @@ module.exports = {
         },
       },
     },
-    ],
+    {
+      plugin: MonacoWebpackPlugin,
+      options: {
+        languages: ['json'],
+      },
+    },
+  ],
+  webpack: {
+    alias: {
+      '@': path.resolve(__dirname, 'src'),
+    },
+  },
 };
