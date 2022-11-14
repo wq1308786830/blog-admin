@@ -1,7 +1,7 @@
 import React, { useEffect, useRef, useState } from 'react';
 import { Button, message, Select } from 'antd';
+import BlogServices from '@/services/BlogServices';
 import CategoryModal from './CategoryModal';
-import BlogServices from '../../services/BlogServices';
 import './index.scss';
 
 interface States {
@@ -65,15 +65,14 @@ function Index() {
     if (parseInt(value, 10)) {
       const { categoryData } = states;
       getChildren(value, categoryData);
-      if (categoryTemp) {
-        categoryTemp &&
-          categoryTemp.forEach((item: any) =>
-            childrenIn.push(
-              <Option key={`${item.id}s`} value={item.id}>
-                {item.name}
-              </Option>
-            )
-          );
+      if (Array.isArray(categoryTemp)) {
+        categoryTemp.forEach((item: any) =>
+          childrenIn.push(
+            <Option key={`${item.id}s`} value={item.id}>
+              {item.name}
+            </Option>
+          )
+        );
       }
       return childrenIn;
     }

@@ -3,7 +3,6 @@ import { Input, message, Modal } from 'antd';
 import AdminServices from '@/services/AdminServices';
 
 interface CategoryModalProps {
-  ref: boolean;
   data: {
     categoryId: string;
     level: number;
