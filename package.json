@@ -50,7 +50,7 @@
     ]
   },
   "devDependencies": {
-    "@craco/craco": "^6.4.5",
+    "@craco/craco": "^7.0.0",
     "@types/draft-js": "^0.11.9",
     "@types/draftjs-to-html": "^0.8.1",
     "@types/html-to-draftjs": "^1.4.0",
