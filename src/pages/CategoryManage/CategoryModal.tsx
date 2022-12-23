@@ -28,8 +28,8 @@ function CategoryModal(props: CategoryModalProps, ref: any) {
 
   const handleOk = async () => {
     const { fatherId, level, categoryName } = states;
-    const resp = await AdminServices.addCategory(fatherId, level, categoryName).catch((e: any) =>
-      message.error(`错误：${e}`)
+    const resp: any = await AdminServices.addCategory(fatherId, level, categoryName).catch(
+      (e: any) => message.error(`错误：${e}`)
     );
     if (resp.success) {
       message.success('添加成功');

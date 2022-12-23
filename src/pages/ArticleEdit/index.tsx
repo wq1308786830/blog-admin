@@ -12,17 +12,8 @@ import AdminServices from '@/services/AdminServices';
 import BlogServices from '@/services/BlogServices';
 import './index.scss';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import { handleOptions } from '@/utils/tools';
 
-const handleOptions = (data: any, optionData: any[]) => {
-  const newOptionData = optionData;
-  for (let i = 0; i < data.length; i += 1) {
-    newOptionData[i] = { value: data[i].id, label: data[i].name };
-    if (data[i].subCategory && data[i].subCategory.length) {
-      handleOptions(data[i].subCategory, (newOptionData[i].children = []));
-    }
-  }
-  return newOptionData;
-};
 interface States {
   title: string;
   options: any[];
@@ -79,6 +70,7 @@ function Index() {
    * 解析文档展示
    * @param detail
    */
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   const initArticle = (detail: any) => {
     if (detail.text_type === 'md') {
       setStates((prev) => ({ ...prev, markdownContent: detail.content }));
@@ -97,7 +89,7 @@ function Index() {
   const getArticleDetail = async () => {
     const { articleId: artId } = states;
     if (!articleId) return;
-    const resp = await BlogServices.getArticleDetail(artId).catch((err: any) =>
+    const resp: any = await BlogServices.getArticleDetail(artId).catch((err: any) =>
       message.error(`错误：${err}`)
     );
     if (resp.success) {
@@ -108,9 +100,9 @@ function Index() {
   };
 
   useEffect(() => {
-    const categories = getAllCategories();
-    const detail = getArticleDetail();
-    window.console.log(categories, detail);
+    getAllCategories();
+    getArticleDetail();
+    // window.console.log(categories, detail);
   }, []);
 
   const onCascaderChange = (value: any[]) => {

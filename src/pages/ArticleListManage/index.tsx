@@ -1,9 +1,11 @@
 import React, { useEffect, useState } from 'react';
+import { useQuery } from 'react-query';
 import { Link } from 'react-router-dom';
 import { Avatar, Button, Cascader, DatePicker, Input, List, message, Popconfirm, Spin } from 'antd';
 import AdminServices from '@/services/AdminServices';
 import BlogServices from '@/services/BlogServices';
 import './index.scss';
+import { handleOptions } from '@/utils/tools';
 
 interface States {
   loading: boolean;
@@ -17,30 +19,13 @@ interface States {
     description: string;
   }[];
   pageIndex: number;
-  options: [];
+  // options: [];
   cOptions: {
     categoryId: string;
     dateRange: any;
     text: string;
   };
 }
-
-/**
- * The recursive function to change option's key name.
- * @param data:input option array data.
- * @param optionData:output option array data.
- * @returns optionData: output option array data.
- */
-const handleOptions = (data: any, optionData: any) => {
-  const newOptionData = optionData;
-  for (let i = 0; i < data.length; i += 1) {
-    newOptionData[i] = { value: data[i].id, label: data[i].name };
-    if (data[i].subCategory && data[i].subCategory.length) {
-      handleOptions(data[i].subCategory, (newOptionData[i].children = []));
-    }
-  }
-  return optionData;
-};
 
 function Index() {
   const [states, setStates] = useState<States>({
@@ -50,7 +35,7 @@ function Index() {
     category: [],
     data: [],
     pageIndex: 0,
-    options: [],
+    // options: [],
     cOptions: {
       categoryId: '',
       dateRange: [],
@@ -60,50 +45,49 @@ function Index() {
 
   // get category select options data.
   const getAllCategories = async () => {
-    const resp = await BlogServices.getAllCategories().catch((err: any) =>
+    const resp: any = await BlogServices.getAllCategories().catch((err: any) =>
       message.error(`错误：${err}`)
     );
     if (resp.success) {
-      setStates((prev) => ({
-        ...prev,
-        options: handleOptions(resp.data, []),
-      }));
-    } else {
-      message.warning(resp.msg);
+      return handleOptions(resp.data, []);
     }
+    message.warning(resp.msg);
+    return [];
   };
 
   /**
    *  get articles by conditions in data `option` and page number pageIndex.
    *  callback function will deal response data.
    */
-  const getArticlesData = async (option: any, pageIndex: number, callback: Function) => {
-    setStates((prev) => ({ ...prev, loading: true }));
-    const resp = await AdminServices.getArticles(option, pageIndex).catch((err: any) => {
-      setStates((prev) => ({ ...prev, loading: false }));
-      return message.error(`错误：${err}`);
-    });
-    setStates((prev) => ({ ...prev, loading: false }));
+  const getArticlesData = async (queryKey: any[]) => {
+    setStates((prev) => ({ ...prev, showLoadingMore: true, loadingMore: true }));
+    const resp: any = await AdminServices.getArticles(queryKey[0], queryKey[1]).catch((err: any) =>
+      message.error(`错误：${err}`)
+    );
     if (resp.success) {
-      callback(resp.data);
-    } else {
-      callback([]);
+      if (resp.data.length) {
+        setStates((prev) => ({
+          ...prev,
+          showLoadingMore: true,
+          data: [...prev.data, ...resp.data],
+          loadingMore: false,
+          pageIndex: prev.pageIndex + 1,
+        }));
+      } else {
+        setStates((prev) => ({
+          ...prev,
+          showLoadingMore: false,
+          loadingMore: false,
+        }));
+      }
     }
   };
 
   useEffect(() => {
-    getAllCategories();
-    getArticlesData([], 0, (res: any) => {
-      if (res.length < 2) {
-        setStates((prev) => ({
-          ...prev,
-          showLoadingMore: false,
-          loading: false,
-          data: res,
-        }));
-      }
-    });
+    getArticlesData([states.cOptions, states.pageIndex]);
   }, []);
+
+  const { data: options } = useQuery('getAllCategories', getAllCategories);
 
   // change pageIndex number and needSelect status when selected condition changes.
   const changeSelectState = () => {
@@ -121,7 +105,7 @@ function Index() {
     setStates((prev: any) => ({
       ...prev,
       category: value,
-      cOptions: { ...prev.cOptions, categoryId: value[value.length - 1] },
+      cOptions: { ...prev.cOptions, categoryId: value ? value[value.length - 1] : '' },
     }));
   };
 
@@ -149,49 +133,29 @@ function Index() {
   };
 
   const onSearchClick = () => {
-    const { cOptions, pageIndex } = states;
-    getArticlesData(cOptions, pageIndex, (res: any) => {
-      if (res.length < 2) {
-        setStates((prev) => ({ ...prev, showLoadingMore: false }));
-      }
-      setStates((prev) => ({
-        ...prev,
-        showLoadingMore: true,
-        loading: false,
-        data: res,
-      }));
-    });
+    const { cOptions } = states;
+    setStates((prev) => ({
+      ...prev,
+      data: [],
+      pageIndex: 0,
+    }));
+    getArticlesData([cOptions, 0]);
   };
 
   // handle load more button click event.
   const onLoadMore = () => {
-    const { cOptions, data, pageIndex } = states;
+    const { cOptions, pageIndex } = states;
     setStates((prev) => ({
       ...prev,
       loadingMore: true,
       pageIndex: pageIndex + 1,
     }));
-    getArticlesData(cOptions, pageIndex, (res: any) => {
-      if (res.length < 2) {
-        setStates((prev) => ({
-          ...prev,
-          pageIndex: pageIndex - 1,
-          showLoadingMore: false,
-        }));
-      }
-      const moreData: any = data.concat(res);
-      setStates((prev) => ({
-        ...prev,
-        loadingMore: false,
-        data: moreData,
-      }));
-      window.dispatchEvent(new Event('resize'));
-    });
+    getArticlesData([cOptions, pageIndex]);
   };
 
   const confirm = async (article: any) => {
     const { data } = states;
-    const resp = await AdminServices.deleteArticle(article.id).catch((err: any) =>
+    const resp: any = await AdminServices.deleteArticle(article.id).catch((err: any) =>
       message.error(`错误：${err}`)
     );
     if (resp.success) {
@@ -200,7 +164,7 @@ function Index() {
         ...prev,
         data: deletedItem,
       }));
-      message.success(`博文${article.title}，删除成功！`);
+      message.success(`文章：${article.title}，删除成功！`);
     }
   };
 
@@ -228,7 +192,7 @@ function Index() {
         <Cascader
           value={states.category}
           style={{ width: 300 }}
-          options={states.options}
+          options={options}
           placeholder="类目"
           onChange={onCascaderChange}
           changeOnSelect
@@ -252,15 +216,15 @@ function Index() {
       </Input.Group>
       <List
         className="demo-loadmore-list"
-        loading={states.loading}
+        loading={states.loadingMore}
         itemLayout="horizontal"
         loadMore={loadMore}
         dataSource={states.data}
-        renderItem={(item) => (
+        renderItem={(item: any) => (
           <List.Item
             actions={[
               <Link
-                state={{ articleDetail: item, category: states.category, options: states.options }}
+                state={{ articleDetail: item, category: states.category, options }}
                 to={`/articleEdit/${item.category_id}/${item.id}`}
               >
                 编辑

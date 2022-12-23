@@ -42,3 +42,20 @@ export function parseObj2SearchParams(obj: any) {
 
   return searchParams;
 }
+
+/**
+ * The recursive function to change option's key name.
+ * @param data:input option array data.
+ * @param optionData:output option array data.
+ * @returns optionData: output option array data.
+ */
+export const handleOptions = (data: any, optionData: any) => {
+  const newOptionData = optionData;
+  for (let i = 0; i < data.length; i += 1) {
+    newOptionData[i] = { value: data[i].id, label: data[i].name };
+    if (data[i].subCategory && data[i].subCategory.length) {
+      handleOptions(data[i].subCategory, (newOptionData[i].children = []));
+    }
+  }
+  return optionData;
+};
