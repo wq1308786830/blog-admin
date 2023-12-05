@@ -1,10 +1,9 @@
 import React from 'react';
-import history from "history/browser";
-import { Button, Checkbox, Form, Input, message } from 'antd';
-import { LockOutlined, UserOutlined } from "@ant-design/icons";
+import history from 'history/browser';
+import { Button, Checkbox, Form, Input, message, FormInstance } from 'antd';
+import { LockOutlined, UserOutlined } from '@ant-design/icons';
 import Recaptcha from 'react-recaptcha';
-import AdminServices from '../../services/AdminServices';
-import {FormInstance} from "antd/es";
+import AdminServices from '@/services/AdminServices';
 import './index.scss';
 
 interface NormalLoginFormProps {
@@ -25,7 +24,6 @@ function NormalLoginForm(props: NormalLoginFormProps) {
     } else {
       message.error(`错误：${resp.msg}`);
     }
-
   };
 
   const onloadCallback = () => {
@@ -38,20 +36,20 @@ function NormalLoginForm(props: NormalLoginFormProps) {
 
   return (
     <Form className="login-form">
-      <Form.Item name={'user_name'} rules={[{ required: true, message: '请输入用户名!' }]}>
-          <Input
-            prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-            placeholder="用户名"
-          />
+      <Form.Item name="user_name" rules={[{ required: true, message: '请输入用户名!' }]}>
+        <Input
+          prefix={<UserOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+          placeholder="用户名"
+        />
       </Form.Item>
-      <Form.Item name={'password'} rules={[{ required: true, message: '请输入密码!' }]}>
-          <Input
-            prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
-            type="password"
-            placeholder="密码"
-          />
+      <Form.Item name="password" rules={[{ required: true, message: '请输入密码!' }]}>
+        <Input
+          prefix={<LockOutlined style={{ color: 'rgba(0,0,0,.25)' }} />}
+          type="password"
+          placeholder="密码"
+        />
       </Form.Item>
-      <Form.Item name={'remember'} initialValue={true}>
+      <Form.Item name="remember" initialValue>
         、<Checkbox>记住我</Checkbox>
       </Form.Item>
       <Button className="login-form-forgot">忘记密码？</Button>
@@ -67,7 +65,7 @@ function NormalLoginForm(props: NormalLoginFormProps) {
         hl="zh-CN"
       />
     </Form>
-  )
+  );
 }
 
 export default NormalLoginForm;

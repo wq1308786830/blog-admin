@@ -1,6 +1,7 @@
 import axios from 'axios';
-import config from '../helpers/config';
-import {loading, parseObj2SearchParams, toast} from './tools';
+
+import config from '@/helpers/config';
+import { loading, parseObj2SearchParams, toast } from '@/utils/tools';
 
 const { prefix } = config;
 const TIMEOUT = 3 * 60 * 1000; // 请求超时3min
@@ -27,7 +28,7 @@ export async function request(url: string, options: any, isShowLoading: boolean)
   const option = {
     url,
     method: options.method,
-    data: options.body
+    data: options.body,
   };
   try {
     response = await axios(option);
@@ -51,27 +52,21 @@ export async function request(url: string, options: any, isShowLoading: boolean)
  * 请求发送前的全局处理
  */
 axios.interceptors.request.use(
-  conf => {
-    return conf;
-  },
-  error => {
-    return Promise.reject(error);
-  }
+  (conf) => conf,
+  (error) => Promise.reject(error)
 );
 
 /**
  * 请求返回的全局处理
  */
 axios.interceptors.response.use(
-  response => {
+  (response) => {
     if (response.status >= 200 && response.status < 300) {
       return Promise.resolve(response.data);
     }
     return Promise.reject(response);
   },
-  error => {
-    return Promise.reject(error);
-  }
+  (error) => Promise.reject(error)
 );
 
 /**
@@ -87,7 +82,7 @@ export function GET(url: string, params: any = null, showLoading = false) {
   searchParams = searchParams === '' ? searchParams : `?${searchParams}`;
 
   const options = {
-    method: 'GET'
+    method: 'GET',
   };
 
   return request(`${url}${searchParams}`, options, showLoading);
@@ -106,7 +101,7 @@ export function POST(url: string, params: any = null, showLoading = false) {
 
   const options = {
     method: 'POST',
-    body: searchParams
+    body: searchParams,
   };
 
   return request(url, options, showLoading);
@@ -125,7 +120,7 @@ export function PUT(url: string, params: any = null, showLoading = false) {
 
   const options = {
     method: 'PUT',
-    body: searchParams
+    body: searchParams,
   };
 
   return request(url, options, showLoading);
@@ -144,7 +139,7 @@ export function DELETE(url: string, params: any = null, showLoading = false) {
   searchParams = searchParams === '' ? searchParams : `?${searchParams}`;
 
   const options = {
-    method: 'DELETE'
+    method: 'DELETE',
   };
   return request(`${url}${searchParams}`, options, showLoading);
 }

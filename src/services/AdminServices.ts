@@ -1,10 +1,10 @@
 import md5 from 'md5';
-import {GET, POST, PUT} from '../utils/request';
+import { GET, POST, PUT } from '@/utils/request';
 
 function login(formData: any) {
   const params = {
     ...formData,
-    password: md5(formData.password)
+    password: md5(formData.password),
   };
   return POST('/admin/login', params);
 }
@@ -31,5 +31,5 @@ export default {
   getArticles,
   publishArticle,
   deleteArticle,
-  addCategory
+  addCategory,
 };
