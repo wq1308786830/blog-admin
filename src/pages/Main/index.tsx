@@ -17,19 +17,19 @@ function Index() {
       <Sider trigger={null} collapsible collapsed={collapsed}>
         <Menu theme="light" defaultSelectedKeys={['1']} mode="inline" style={{ height: '100%' }}>
           <Menu.Item key="1">
-            <Link to="./admin/articleListManage">
+            <Link to="/admin/articleListManage">
               <PieChartOutlined />
               <span>首页</span>
             </Link>
           </Menu.Item>
           <Menu.Item key="2">
-            <Link to="./admin/articleEdit">
+            <Link to="/admin/articleEdit">
               <DesktopOutlined />
               <span>资源管理</span>
             </Link>
           </Menu.Item>
           <Menu.Item key="9">
-            <Link to="./admin/categoryManage">
+            <Link to="/admin/categoryManage">
               <FileOutlined />
               <span>类目管理</span>
             </Link>
