@@ -1,10 +1,10 @@
 const env = process.env.NODE_ENV;
 
 const Config = {
-  foreignPrefix: 'http://gin.web-framework-wcof.1681718655914897.cn-hangzhou.fc.devsapp.net',
-  production: 'http://gin.web-framework-wcof.1681718655914897.cn-hangzhou.fc.devsapp.net',
+  foreignPrefix: 'https://blog-proxy-nine.vercel.app',
+  production: 'https://blog-proxy-nine.vercel.app',
   development: 'http://localhost:5002',
-  test: 'http://gin.web-framework-wcof.1681718655914897.cn-hangzhou.fc.devsapp.net',
+  test: 'https://blog-proxy-nine.vercel.app',
 };
 
 const prefix = Config[env];
