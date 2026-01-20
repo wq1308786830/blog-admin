@@ -99,11 +99,12 @@ function Index() {
     }
   }, [articleId]); // eslint-disable-line react-hooks/exhaustive-deps
 
+  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     getAllCategories();
     getArticleDetail();
     // window.console.log(categories, detail);
-  }, [getAllCategories, getArticleDetail]);
+  }, [getArticleDetail]);
 
   const onCascaderChange = (value: any[]) => {
     setStates((prev) => ({ ...prev, category: value, categoryId: value[value.length - 1] }));
