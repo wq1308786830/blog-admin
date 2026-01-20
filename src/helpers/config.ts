@@ -11,8 +11,10 @@ const prefix = Config[env];
 
 window.console.log(env);
 
-export default {
+const configExport = {
   env,
   Config,
   prefix
 };
+
+export default configExport;

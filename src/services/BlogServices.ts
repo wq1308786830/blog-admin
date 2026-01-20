@@ -25,7 +25,7 @@ function deleteCategory(categoryId: number) {
   return DELETE('/admin/deleteCategory', { categoryId }) as Promise<ApiResponse<void>>;
 }
 
-export default {
+const blogServices = {
   getCategories,
   getAllCategories,
   getArticleList,
@@ -33,3 +33,5 @@ export default {
   getArticleRecommendLinks,
   deleteCategory,
 };
+
+export default blogServices;

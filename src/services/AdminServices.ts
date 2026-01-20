@@ -32,10 +32,12 @@ function addCategory(fatherId: number | null, level: number, categoryName: strin
   return PUT('/admin/addCategory', { fatherId, level, categoryName }) as Promise<ApiResponse<unknown>>;
 }
 
-export default {
+const adminServices = {
   login,
   getArticles,
   publishArticle,
   deleteArticle,
   addCategory,
 };
+
+export default adminServices;

@@ -1,4 +1,4 @@
-import { useEffect, useState } from 'react';
+import { useCallback, useEffect, useState } from 'react';
 import { Button, Cascader, Input, Layout, message, Switch } from 'antd';
 import { useParams } from 'react-router-dom';
 import { ContentState, convertToRaw, EditorState } from 'draft-js';
@@ -86,9 +86,9 @@ function Index() {
     }));
   };
 
-  const getArticleDetail = async () => {
-    const { articleId: artId } = states;
+  const getArticleDetail = useCallback(async () => {
     if (!articleId) return;
+    const artId = parseInt(articleId, 10);
     const resp: any = await BlogServices.getArticleDetail(artId).catch((err: any) =>
       message.error(`错误：${err}`)
     );
@@ -97,13 +97,13 @@ function Index() {
     } else {
       message.warning(resp.msg);
     }
-  };
+  }, [articleId]); // eslint-disable-line react-hooks/exhaustive-deps
 
   useEffect(() => {
     getAllCategories();
     getArticleDetail();
     // window.console.log(categories, detail);
-  }, []);
+  }, [getAllCategories, getArticleDetail]);
 
   const onCascaderChange = (value: any[]) => {
     setStates((prev) => ({ ...prev, category: value, categoryId: value[value.length - 1] }));
