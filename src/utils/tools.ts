@@ -51,14 +51,9 @@ interface CategoryWithSubCategory extends Category {
 /**
  * The recursive function to change option's key name.
  * @param data:input option array data.
- * @param optionData:output option array data.
  * @returns optionData: output option array data.
  */
-export const handleOptions = (
-  data: CategoryWithSubCategory[],
-  // eslint-disable-next-line @typescript-eslint/no-unused-vars
-  _optionData: CategoryOption[] = []
-): CategoryOption[] => {
+export const handleOptions = (data: CategoryWithSubCategory[]): CategoryOption[] => {
   const newOptionData: CategoryOption[] = [];
   for (let i = 0; i < data.length; i += 1) {
     const category = data[i];
@@ -66,8 +61,7 @@ export const handleOptions = (
 
     const newItem: CategoryOption = { value: category.id, label: category.name };
     if (category.subCategory && category.subCategory.length) {
-      newItem.children = [];
-      handleOptions(category.subCategory, newItem.children);
+      newItem.children = handleOptions(category.subCategory);
     }
     newOptionData.push(newItem);
   }

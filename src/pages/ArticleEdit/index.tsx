@@ -46,7 +46,7 @@ function Index() {
       throw err;
     });
     if (resp.success) {
-      setStates((prev) => ({ ...prev, options: handleOptions(resp.data, []) }));
+      setStates((prev) => ({ ...prev, options: handleOptions(resp.data) }));
     } else {
       message.warning(resp.msg);
     }
