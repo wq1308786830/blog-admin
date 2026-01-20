@@ -1,4 +1,5 @@
 import { message } from 'antd';
+import { Category, CategoryOption } from '@/types';
 
 /**
  * 展示loading
@@ -29,18 +30,22 @@ export function toast(content: React.ReactNode, afterClose = undefined) {
 
 /**
  * 将请求参数转换为application/x-www-form-urlencoded的参数形式
- * @param {Object} obj 请求参数
+ * @param {Record<string, unknown>} obj 请求参数
  * @return {string}
  */
-export function parseObj2SearchParams(obj: any) {
+export function parseObj2SearchParams(obj: Record<string, unknown> | null) {
   let searchParams = '';
   if (obj !== null && obj !== undefined) {
     searchParams = Object.keys(obj)
-      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(obj[key])}`)
+      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(String(obj[key]))}`)
       .join('&');
   }
 
   return searchParams;
+}
+
+interface CategoryWithSubCategory extends Category {
+  subCategory?: CategoryWithSubCategory[];
 }
 
 /**
@@ -49,13 +54,22 @@ export function parseObj2SearchParams(obj: any) {
  * @param optionData:output option array data.
  * @returns optionData: output option array data.
  */
-export const handleOptions = (data: any, optionData: any) => {
-  const newOptionData = optionData;
+export const handleOptions = (
+  data: CategoryWithSubCategory[],
+  // eslint-disable-next-line @typescript-eslint/no-unused-vars
+  _optionData: CategoryOption[] = []
+): CategoryOption[] => {
+  const newOptionData: CategoryOption[] = [];
   for (let i = 0; i < data.length; i += 1) {
-    newOptionData[i] = { value: data[i].id, label: data[i].name };
-    if (data[i].subCategory && data[i].subCategory.length) {
-      handleOptions(data[i].subCategory, (newOptionData[i].children = []));
+    const category = data[i];
+    if (!category) continue;
+
+    const newItem: CategoryOption = { value: category.id, label: category.name };
+    if (category.subCategory && category.subCategory.length) {
+      newItem.children = [];
+      handleOptions(category.subCategory, newItem.children);
     }
+    newOptionData.push(newItem);
   }
-  return optionData;
+  return newOptionData;
 };

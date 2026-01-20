@@ -16,4 +16,15 @@ module.exports = {
       '@': path.resolve(__dirname, 'src'),
     },
   },
+  // Add Babel configuration to support React Compiler
+  babel: {
+    presets: [
+      ['@babel/preset-react', { runtime: 'automatic' }],
+      '@babel/preset-typescript',
+    ],
+    plugins: [
+      // ⚠️ Important: React Compiler plugin must be first
+      'babel-plugin-react-compiler',
+    ],
+  },
 };

@@ -1,12 +1,7 @@
-import React from 'react';
-import loadable from 'react-loadable';
+import { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
 import { Spin } from 'antd';
 import moment from 'moment';
-// import AdminMain from "./pages/Main";
-// import ArticleListManage from "./pages/ArticleListManage";
-// import ArticleEdit from "./pages/ArticleEdit";
-// import CategoryManage from "./pages/CategoryManage";
 import 'moment/locale/zh-cn';
 import './App.scss';
 
@@ -20,30 +15,11 @@ function Loading() {
   );
 }
 
-const Login = loadable({
-  loader: () => import('./pages/Login'),
-  loading: Loading,
-});
-
-const AdminMain = loadable({
-  loader: () => import('./pages/Main'),
-  loading: Loading,
-});
-
-const ArticleListManage = loadable({
-  loader: () => import('./pages/ArticleListManage'),
-  loading: Loading,
-});
-
-const ArticleEdit = loadable({
-  loader: () => import('./pages/ArticleEdit'),
-  loading: Loading,
-});
-
-const CategoryManage = loadable({
-  loader: () => import('./pages/CategoryManage'),
-  loading: Loading,
-});
+const Login = lazy(() => import('./pages/Login'));
+const AdminMain = lazy(() => import('./pages/Main'));
+const ArticleListManage = lazy(() => import('./pages/ArticleListManage'));
+const ArticleEdit = lazy(() => import('./pages/ArticleEdit'));
+const CategoryManage = lazy(() => import('./pages/CategoryManage'));
 
 export function PrivateRoute() {
   if (localStorage.getItem('user')) {
@@ -68,7 +44,11 @@ const routers = createBrowserRouter([
 ]);
 
 function App() {
-  return <RouterProvider router={routers} />;
+  return (
+    <Suspense fallback={<Loading />}>
+      <RouterProvider router={routers} />
+    </Suspense>
+  );
 }
 
 export default App;

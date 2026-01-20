@@ -1,174 +1,82 @@
-import React, { useEffect, useState } from 'react';
-import { useQuery } from 'react-query';
+import { useState, useTransition } from 'react';
 import { Link } from 'react-router-dom';
-import { Avatar, Button, Cascader, DatePicker, Input, List, message, Popconfirm, Spin } from 'antd';
-import AdminServices from '@/services/AdminServices';
-import BlogServices from '@/services/BlogServices';
+import { Avatar, Button, Cascader, DatePicker, Input, List, Popconfirm, Spin } from 'antd';
+import dayjs, { Dayjs } from 'dayjs';
+import { useCategories, useArticleActions, useArticleList } from '@/hooks';
+import { Article, ArticleFilters } from '@/types';
 import './index.scss';
-import { handleOptions } from '@/utils/tools';
-
-interface States {
-  loading: boolean;
-  loadingMore: boolean;
-  showLoadingMore: boolean;
-  category: [];
-  data: {
-    id: any;
-    category_id: any;
-    title: string;
-    description: string;
-  }[];
-  pageIndex: number;
-  // options: [];
-  cOptions: {
-    categoryId: string;
-    dateRange: any;
-    text: string;
-  };
-}
 
 function Index() {
-  const [states, setStates] = useState<States>({
-    loading: false,
-    loadingMore: false,
-    showLoadingMore: true,
-    category: [],
-    data: [],
-    pageIndex: 0,
-    // options: [],
-    cOptions: {
-      categoryId: '',
-      dateRange: [],
-      text: '',
-    },
-  });
+  const [selectedCategory, setSelectedCategory] = useState<number[]>([]);
+  const [dateRange, setDateRange] = useState<[Dayjs, Dayjs] | null>(null);
+  const [searchText, setSearchText] = useState('');
+  const [isPending, startTransition] = useTransition();
 
-  // get category select options data.
-  const getAllCategories = async () => {
-    const resp: any = await BlogServices.getAllCategories().catch((err: any) =>
-      message.error(`错误：${err}`)
-    );
-    if (resp.success) {
-      return handleOptions(resp.data, []);
-    }
-    message.warning(resp.msg);
-    return [];
+  // Build filters object
+  const filters: ArticleFilters = {
+    categoryId: selectedCategory.length > 0 ? String(selectedCategory[selectedCategory.length - 1]) : '',
+    dateRange: dateRange ? [dateRange[0].unix(), dateRange[1].unix()] : [],
+    text: searchText,
   };
 
-  /**
-   *  get articles by conditions in data `option` and page number pageIndex.
-   *  callback function will deal response data.
-   */
-  const getArticlesData = async (queryKey: any[]) => {
-    setStates((prev) => ({ ...prev, showLoadingMore: true, loadingMore: true }));
-    const resp: any = await AdminServices.getArticles(queryKey[0], queryKey[1]).catch((err: any) =>
-      message.error(`错误：${err}`)
-    );
-    if (resp.success) {
-      if (resp.data.length) {
-        setStates((prev) => ({
-          ...prev,
-          showLoadingMore: true,
-          data: [...prev.data, ...resp.data],
-          loadingMore: false,
-          pageIndex: prev.pageIndex + 1,
-        }));
+  // Fetch categories
+  const { data: categoryOptions = [] } = useCategories();
+
+  // Fetch articles with infinite scroll
+  const {
+    data: articlesData,
+    fetchNextPage,
+    hasNextPage,
+    isFetchingNextPage,
+    isLoading,
+  } = useArticleList(filters);
+
+  // Flatten articles from all pages
+  const articles = articlesData?.pages.flat() || [];
+
+  // Article actions
+  const { deleteArticle } = useArticleActions();
+
+  // Handler functions with useTransition for non-urgent updates
+  const onCascaderChange = (value: (string | number)[]) => {
+    startTransition(() => {
+      const numericValues = value.map(Number);
+      setSelectedCategory(numericValues);
+    });
+  };
+
+  const onRangePickerChange = (dates: null | [Dayjs | null, Dayjs | null]) => {
+    startTransition(() => {
+      if (dates && dates[0] && dates[1]) {
+        setDateRange([dates[0], dates[1]]);
       } else {
-        setStates((prev) => ({
-          ...prev,
-          showLoadingMore: false,
-          loadingMore: false,
-        }));
+        setDateRange(null);
       }
-    }
+    });
   };
 
-  useEffect(() => {
-    getArticlesData([states.cOptions, states.pageIndex]);
-  }, []);
-
-  const { data: options } = useQuery('getAllCategories', getAllCategories);
-
-  // change pageIndex number and needSelect status when selected condition changes.
-  const changeSelectState = () => {
-    const { pageIndex } = states;
-    if (pageIndex > 0) {
-      setStates((prev) => ({
-        ...prev,
-        pageIndex: 0,
-      }));
-    }
+  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    startTransition(() => {
+      setSearchText(e.target.value);
+    });
   };
 
-  const onCascaderChange = (value: any[]) => {
-    changeSelectState();
-    setStates((prev: any) => ({
-      ...prev,
-      category: value,
-      cOptions: { ...prev.cOptions, categoryId: value ? value[value.length - 1] : '' },
-    }));
-  };
-
-  const onRangePickerChange = (dates: any) => {
-    changeSelectState();
-    setStates((prev: any) => ({
-      ...prev,
-      dateRange: dates,
-      cOptions: {
-        ...prev.cOptions,
-        dateRange: [dates[0].unix(), dates[1].unix()],
-      },
-    }));
-  };
-
-  const onInputChange = (e: any) => {
-    e.persist();
-    const { cOptions } = states;
-    changeSelectState();
-    setStates((prev) => ({
-      ...prev,
-      text: e.target.value,
-      cOptions: { ...cOptions, text: e.target.value },
-    }));
-  };
-
-  const onSearchClick = () => {
-    const { cOptions } = states;
-    setStates((prev) => ({
-      ...prev,
-      data: [],
-      pageIndex: 0,
-    }));
-    getArticlesData([cOptions, 0]);
-  };
-
-  // handle load more button click event.
   const onLoadMore = () => {
-    const { cOptions, pageIndex } = states;
-    setStates((prev) => ({
-      ...prev,
-      loadingMore: true,
-      pageIndex: pageIndex + 1,
-    }));
-    getArticlesData([cOptions, pageIndex]);
-  };
-
-  const confirm = async (article: any) => {
-    const { data } = states;
-    const resp: any = await AdminServices.deleteArticle(article.id).catch((err: any) =>
-      message.error(`错误：${err}`)
-    );
-    if (resp.success) {
-      const deletedItem: any = data.filter((item: any) => item.id !== article.id);
-      setStates((prev) => ({
-        ...prev,
-        data: deletedItem,
-      }));
-      message.success(`文章：${article.title}，删除成功！`);
+    if (hasNextPage && !isFetchingNextPage) {
+      fetchNextPage();
     }
   };
 
-  const loadMore = states.showLoadingMore ? (
+  const handleDelete = (article: Article) => {
+    deleteArticle(article.id);
+  };
+
+  // Convert dateRange back to DatePicker format
+  const datePickerValue = dateRange
+    ? [dayjs.unix(Number(dateRange[0])), dayjs.unix(Number(dateRange[1]))]
+    : null;
+
+  const loadMore = hasNextPage ? (
     <div
       style={{
         textAlign: 'center',
@@ -177,10 +85,12 @@ function Index() {
         lineHeight: '32px',
       }}
     >
-      {states.loadingMore && <Spin />}
-      {!states.loadingMore && states.data.length ? (
-        <Button onClick={onLoadMore}>加载更多</Button>
-      ) : null}
+      {isFetchingNextPage && <Spin />}
+      {!isFetchingNextPage && articles.length > 0 && (
+        <Button onClick={onLoadMore} disabled={isFetchingNextPage}>
+          加载更多
+        </Button>
+      )}
     </div>
   ) : (
     <div className="ant-list-empty-text">没更多数据了</div>
@@ -188,50 +98,56 @@ function Index() {
 
   return (
     <div>
+      {isPending && (
+        <div style={{ textAlign: 'center', padding: '10px' }}>
+          <Spin tip="加载中..." />
+        </div>
+      )}
       <Input.Group compact style={{ textAlign: 'center', paddingBottom: '2em' }}>
         <Cascader
-          value={states.category}
           style={{ width: 300 }}
-          options={options}
+          options={categoryOptions}
           placeholder="类目"
           onChange={onCascaderChange}
           changeOnSelect
+          allowClear
         />
         <DatePicker.RangePicker
           name="dateRange"
-          value={states.cOptions.dateRange}
+          value={(datePickerValue ?? undefined) as [Dayjs, Dayjs] | undefined}
           onChange={onRangePickerChange}
           placeholder={['开始时间', '截止时间']}
+          allowClear
         />
         <Input
           name="text"
-          value={states.cOptions.text}
+          value={searchText}
           placeholder="模糊搜索"
           onChange={onInputChange}
           style={{ width: 200 }}
         />
-        <Button type="primary" icon="search" onClick={onSearchClick}>
-          过滤
+        <Button type="primary" disabled>
+          过滤 (自动)
         </Button>
       </Input.Group>
       <List
         className="demo-loadmore-list"
-        loading={states.loadingMore}
+        loading={isLoading}
         itemLayout="horizontal"
         loadMore={loadMore}
-        dataSource={states.data}
-        renderItem={(item: any) => (
+        dataSource={articles}
+        renderItem={(item) => (
           <List.Item
             actions={[
               <Link
-                state={{ articleDetail: item, category: states.category, options }}
+                state={{ articleDetail: item, category: selectedCategory, options: categoryOptions }}
                 to={`/articleEdit/${item.category_id}/${item.id}`}
               >
                 编辑
               </Link>,
               <Popconfirm
                 title="确定要删除吗?"
-                onConfirm={() => confirm(item)}
+                onConfirm={() => handleDelete(item)}
                 okText="确定"
                 cancelText="取消"
               >

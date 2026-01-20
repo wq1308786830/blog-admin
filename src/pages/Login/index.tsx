@@ -1,9 +1,6 @@
-import React from 'react';
 import { Card, Col, Form, Layout, Row } from 'antd';
 import NormalLoginForm from './NormalLoginForm';
-
 import './index.scss';
-
 
 function Login() {
   const [form] = Form.useForm();

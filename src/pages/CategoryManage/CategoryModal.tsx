@@ -1,4 +1,4 @@
-import React, { useEffect, useImperativeHandle, useState } from 'react';
+import { useEffect, useImperativeHandle, useState, forwardRef } from 'react';
 import { Input, message, Modal } from 'antd';
 import AdminServices from '@/services/AdminServices';
 
@@ -8,7 +8,8 @@ interface CategoryModalProps {
     level: number;
   };
 }
-function CategoryModal(props: CategoryModalProps, ref: any) {
+
+function CategoryModal(props: CategoryModalProps, ref: React.ForwardedRef<unknown>) {
   const { data } = props;
   const [states, setStates] = useState({
     visible: false,
@@ -28,13 +29,19 @@ function CategoryModal(props: CategoryModalProps, ref: any) {
 
   const handleOk = async () => {
     const { fatherId, level, categoryName } = states;
-    const resp: any = await AdminServices.addCategory(fatherId, level, categoryName).catch(
-      (e: any) => message.error(`错误：${e}`)
-    );
-    if (resp.success) {
-      message.success('添加成功');
-    } else {
-      message.warning(resp.msg);
+    try {
+      const resp = await AdminServices.addCategory(Number(fatherId), level, categoryName);
+      if (resp.success) {
+        message.success('添加成功');
+      } else {
+        message.warning(resp.msg);
+      }
+    } catch (e: unknown) {
+      if (e instanceof Error) {
+        message.error(`错误：${e.message}`);
+      } else {
+        message.error('未知错误');
+      }
     }
   };
 
@@ -62,4 +69,4 @@ function CategoryModal(props: CategoryModalProps, ref: any) {
   );
 }
 
-export default React.forwardRef(CategoryModal);
+export default forwardRef(CategoryModal);

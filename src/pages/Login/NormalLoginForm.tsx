@@ -1,4 +1,3 @@
-import React from 'react';
 import history from 'history/browser';
 import { Button, Checkbox, Form, Input, message, FormInstance } from 'antd';
 import { LockOutlined, UserOutlined } from '@ant-design/icons';
@@ -9,29 +8,37 @@ import './index.scss';
 interface NormalLoginFormProps {
   form: FormInstance;
 }
+
 function NormalLoginForm(props: NormalLoginFormProps) {
   const { form } = props;
+
   const handleSubmit = async () => {
     const values = await form.validateFields();
-    const resp: any = await AdminServices.login(values).catch((error: any) => {
-      error.response
-        .json()
-        .then((data: any) => message.error(`错误${data.response.status}：${data.msg}`));
-    });
-    if (resp.success) {
-      localStorage.setItem('user', '1');
-      history.push('/admin');
-    } else {
-      message.error(`错误：${resp.msg}`);
+    try {
+      const resp = await AdminServices.login(values);
+      if (resp.success) {
+        localStorage.setItem('user', '1');
+        history.push('/admin');
+      } else {
+        message.error(`错误：${resp.msg}`);
+      }
+    } catch (error: unknown) {
+      if (error instanceof Error) {
+        message.error(`错误：${error.message}`);
+      } else {
+        message.error('未知错误');
+      }
     }
   };
 
   const onloadCallback = () => {
-    window.console.log('Done!!!');
+    // eslint-disable-next-line no-console
+    console.log('Done!!!');
   };
 
-  const verifyCallback = (resp: any) => {
-    window.console.log(resp);
+  const verifyCallback = (resp: string) => {
+    // eslint-disable-next-line no-console
+    console.log(resp);
   };
 
   return (

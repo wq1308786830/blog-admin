@@ -1,35 +1,7 @@
 {
-  "parser": "@typescript-eslint/parser",
-  "parserOptions": {
-    "sourceType": "module",
-    "project": "./tsconfig.json",
-    "ecmaFeatures": {
-      "jsx": true
-    }
-  },
-  "extends": [
-    "react-app",
-    "react-app/jest",
-    "airbnb",
-    "airbnb/hooks",
-    "airbnb-typescript",
-    "prettier"
-  ],
-  "env": {
-    "browser": true,
-    "jest": true
-  },
-  "settings": {
-    "import/resolver": {
-      "alias": {
-        "map": [["@", "./src"]],
-        "extensions": [".tsx", ".ts", ".js", ".jsx"]
-      }
-    }
-  },
+  "extends": ["react-app", "react-app/jest"],
   "rules": {
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "warn",
-    "max-len": ["error", { "code": 180 }]
+    "react-hooks/exhaustive-deps": "warn"
   }
 }

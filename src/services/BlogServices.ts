@@ -1,27 +1,28 @@
 import { DELETE, GET } from '@/utils/request';
+import { ApiResponse, Article, Category } from '@/types';
 
-function getCategories(fatherId: any) {
-  return GET('/category/getCategories', { fatherId });
+function getCategories(fatherId: number | null) {
+  return GET('/category/getCategories', { fatherId }) as Promise<ApiResponse<Category[]>>;
 }
 
 function getAllCategories() {
-  return GET('/category/getAllCategories');
+  return GET('/category/getAllCategories') as Promise<ApiResponse<Category[]>>;
 }
 
-function getArticleList(key: any) {
-  return GET('/article/getArticleList', { key });
+function getArticleList(key: string) {
+  return GET('/article/getArticleList', { key }) as Promise<ApiResponse<Article[]>>;
 }
 
-function getArticleDetail(articleId: any) {
-  return GET('/article/getArticleDetail', { articleId });
+function getArticleDetail(articleId: number) {
+  return GET('/article/getArticleDetail', { articleId }) as Promise<ApiResponse<Article>>;
 }
 
-function getArticleRecommendLinks(articleId: any) {
-  return GET('/article/getArticleRecommendLinks', { articleId });
+function getArticleRecommendLinks(articleId: number) {
+  return GET('/article/getArticleRecommendLinks', { articleId }) as Promise<ApiResponse<Article[]>>;
 }
 
-function deleteCategory(categoryId: any) {
-  return DELETE('/admin/deleteCategory', { categoryId });
+function deleteCategory(categoryId: number) {
+  return DELETE('/admin/deleteCategory', { categoryId }) as Promise<ApiResponse<void>>;
 }
 
 export default {

@@ -1,4 +1,4 @@
-import React, { useEffect, useState } from 'react';
+import { useEffect, useState } from 'react';
 import { Button, Cascader, Input, Layout, message, Switch } from 'antd';
 import { useParams } from 'react-router-dom';
 import { ContentState, convertToRaw, EditorState } from 'draft-js';
