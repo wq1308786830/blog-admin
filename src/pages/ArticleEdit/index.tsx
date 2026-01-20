@@ -97,9 +97,8 @@ function Index() {
     } else {
       message.warning(resp.msg);
     }
-  }, [articleId]); // eslint-disable-line react-hooks/exhaustive-deps
+  }, [articleId]);
 
-  // eslint-disable-next-line react-hooks/exhaustive-deps
   useEffect(() => {
     getAllCategories();
     getArticleDetail();

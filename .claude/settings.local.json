@@ -6,7 +6,9 @@
       "Bash(npx tsc:*)",
       "Bash(pnpm build:*)",
       "Bash(npx eslint:*)",
-      "Bash(git add:*)"
+      "Bash(git add:*)",
+      "Bash(findstr:*)",
+      "Bash(dir:*)"
     ]
   }
 }
