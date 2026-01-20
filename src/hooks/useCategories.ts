@@ -10,7 +10,7 @@ export function useCategories() {
     queryFn: async (): Promise<CategoryOption[]> => {
       const resp = (await BlogServices.getAllCategories()) as ApiResponse<Category[]>;
       if (resp.success) {
-        return handleOptions(resp.data, []);
+        return handleOptions(resp.data);
       }
       message.error(resp.msg || 'Failed to fetch categories');
       return [];

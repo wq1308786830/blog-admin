@@ -23,7 +23,7 @@ function Index() {
       message.error(`错误：${err}`)
     );
     if (resp.success) {
-      setStates((prev) => ({ ...prev, options: handleOptions(resp.data, []) }));
+      setStates((prev) => ({ ...prev, options: handleOptions(resp.data) }));
     } else {
       message.warning(resp.msg);
       setStates((prev) => ({ ...prev, options: [] }));
