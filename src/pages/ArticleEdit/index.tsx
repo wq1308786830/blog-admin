@@ -5,7 +5,7 @@ import { ContentState, convertToRaw, EditorState } from 'draft-js';
 import { Editor } from 'react-draft-wysiwyg';
 import draftToHtml from 'draftjs-to-html';
 import htmlToDraft from 'html-to-draftjs';
-import MonacoEditor from 'react-monaco-editor';
+import MonacoEditor from '@monaco-editor/react';
 import ReactMarkdown from 'react-markdown';
 import config from '@/helpers/config';
 import AdminServices from '@/services/AdminServices';
@@ -187,7 +187,8 @@ function Index() {
   const editorDidMount = (editor: any) => {
     window.addEventListener('resize', updateDimensions);
     setStates((prev) => ({ ...prev, editor }));
-    editor.layout();
+    // focus the editor
+    editor.focus();
   };
 
   const editorChanged = (checked: boolean) => {
@@ -241,12 +242,13 @@ function Index() {
         <div className="markdown-container">
           <div className="monaco-container">
             <MonacoEditor
+              height="600px"
               language="markdown"
               theme="vs-light"
               value={states.markdownContent}
               options={editorConfig}
               onChange={onEditorChange}
-              editorDidMount={editorDidMount}
+              onMount={editorDidMount}
             />
           </div>
           <div className="preview-container">
