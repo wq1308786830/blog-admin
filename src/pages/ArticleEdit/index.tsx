@@ -46,10 +46,40 @@ function Index() {
       throw err;
     });
     if (resp.success) {
-      setStates((prev) => ({ ...prev, options: handleOptions(resp.data) }));
+      const options = handleOptions(resp.data);
+      setStates((prev) => ({ ...prev, options }));
+      return options;
     } else {
       message.warning(resp.msg);
+      return [];
     }
+  };
+
+  /**
+   * 在选项树中查找对应节点的完整路径
+   * @param options 选项树
+   * @param targetId 目标ID
+   * @param path 当前路径
+   * @returns 完整路径数组，如果找不到返回 null
+   */
+  const findCategoryPath = (
+    options: any[],
+    targetId: number,
+    path: number[] = []
+  ): number[] | null => {
+    for (const option of options) {
+      const currentPath = [...path, option.value];
+      if (option.value === targetId) {
+        return currentPath;
+      }
+      if (option.children && option.children.length > 0) {
+        const result = findCategoryPath(option.children, targetId, currentPath);
+        if (result) {
+          return result;
+        }
+      }
+    }
+    return null;
   };
 
   /**
@@ -69,40 +99,52 @@ function Index() {
   /**
    * 解析文档展示
    * @param detail
+   * @param options 类目选项数据
    */
   // eslint-disable-next-line react-hooks/exhaustive-deps
-  const initArticle = (detail: any) => {
+  const initArticle = (detail: any, options: any[] = []) => {
     if (detail.text_type === 'md') {
       setStates((prev) => ({ ...prev, markdownContent: detail.content }));
     } else if (detail.text_type === 'html') {
       initHtmlArticle(detail);
     }
 
+    // 根据 category_id 查找完整路径
+    const categoryPath = findCategoryPath(options, detail.category_id);
+
     setStates((prev) => ({
       ...prev,
       title: detail.title,
       textType: detail.text_type,
-      category: detail.category ? Object.values(detail.category) : [],
+      category: categoryPath || [],
+      categoryId: detail.category_id,
     }));
   };
 
-  const getArticleDetail = useCallback(async () => {
-    if (!articleId) return;
-    const artId = parseInt(articleId, 10);
-    const resp: any = await BlogServices.getArticleDetail(artId).catch((err: any) =>
-      message.error(`错误：${err}`)
-    );
-    if (resp.success) {
-      initArticle(resp.data);
-    } else {
-      message.warning(resp.msg);
-    }
-  }, [articleId]);
+  const getArticleDetail = useCallback(
+    async (options: any[] = []) => {
+      if (!articleId) return;
+      const artId = parseInt(articleId, 10);
+      const resp: any = await BlogServices.getArticleDetail(artId).catch((err: any) =>
+        message.error(`错误：${err}`)
+      );
+      if (resp.success) {
+        initArticle(resp.data, options);
+      } else {
+        message.warning(resp.msg);
+      }
+    },
+    [articleId]
+  );
 
   useEffect(() => {
-    getAllCategories();
-    getArticleDetail();
-    // window.console.log(categories, detail);
+    const initData = async () => {
+      // 先加载类目选项
+      const options = await getAllCategories();
+      // 再加载文章详情（传入 options）
+      await getArticleDetail(options);
+    };
+    initData();
   }, [getArticleDetail]);
 
   const onCascaderChange = (value: any[]) => {
