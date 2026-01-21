@@ -12,6 +12,7 @@ Blog Admin is a React 19 + TypeScript admin panel for managing blog articles and
 - `npm run build` - Build for production (runs TypeScript compiler then Vite build)
 - `npm test` - Run tests with Vitest
 - `npm run preview` - Preview production build locally
+- `pnpm` - package manager
 
 ## Architecture
 
@@ -42,11 +43,16 @@ All API calls go through a centralized HTTP layer in `src/utils/request.ts`:
 - Route structure uses lazy loading with Suspense
 
 ### State Management
-- **TanStack Query** (React Query) for server state
+- **TanStack Query v5** for server state with best practices
+- **Query Keys Factory**: Centralized in `src/lib/query-keys.ts` for type-safe query management
+- **QueryClient**: Configured in `src/lib/query-client.ts` with optimized defaults (5min staleTime, gcTime, etc.)
+- **DevTools**: React Query DevTools integrated for debugging (bottom-right corner)
+- **Error Boundaries**: QueryErrorResetBoundary integrated for error recovery
 - Custom hooks in `src/hooks/`:
-  - `useAuth.ts` - Login/logout mutations
-  - `useArticleList.ts` - Article list queries
-  - `useCategories.ts` - Category queries
+  - `useAuth.ts` - Login/logout mutations with cache clearing
+  - `useArticleList.ts` - Article list queries with optimistic updates
+  - `useCategories.ts` - Category queries with add/delete mutations
+  - `useArticleEdit.ts` - Article editing state and publish mutation
 
 ### UI Components
 - **Ant Design** v5 with custom theme (`colorPrimary: #00b96b`)

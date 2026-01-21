@@ -1,75 +1,51 @@
-import { useEffect, useState } from 'react';
-import { Button, Cascader, Input, message } from 'antd';
-import { handleOptions } from '@/utils/tools';
-import BlogServices from '@/services/BlogServices';
-import AdminServices from '@/services/AdminServices';
+import { useState } from 'react';
+import { Button, Cascader, Input } from 'antd';
+import { useCategories, useAddCategory, useDeleteCategory } from '@/hooks/useCategories';
 import './index.scss';
 
-interface States {
-  categoryName: string;
-  category: any[];
-  options: any[];
-}
 function Index() {
-  const [states, setStates] = useState<States>({
-    categoryName: '',
-    category: [],
-    options: [],
-  });
+  const { data: options = [], isLoading } = useCategories();
+  const addCategory = useAddCategory();
+  const deleteCategory = useDeleteCategory();
 
-  // get all categories data in json string.
-  const getAllCategories = async () => {
-    const resp: any = await BlogServices.getAllCategories().catch((err: any) =>
-      message.error(`错误：${err}`)
+  const [categoryName, setCategoryName] = useState('');
+  const [category, setCategory] = useState<any[]>([]);
+
+  const handleCascaderChange = (value: any[]) => {
+    setCategory(value);
+  };
+
+  const handleDelete = () => {
+    if (category.length === 0) {
+      return;
+    }
+    const categoryId = category[category.length - 1];
+    deleteCategory.mutate(categoryId);
+  };
+
+  const handleAdd = () => {
+    if (!categoryName.trim()) {
+      return;
+    }
+    if (category.length === 0) {
+      return;
+    }
+
+    addCategory.mutate(
+      {
+        fatherId: category[category.length - 1],
+        level: category.length,
+        categoryName,
+      },
+      {
+        onSuccess: () => {
+          setCategoryName('');
+          setCategory([]);
+        },
+      }
     );
-    if (resp.success) {
-      setStates((prev) => ({ ...prev, options: handleOptions(resp.data) }));
-    } else {
-      message.warning(resp.msg);
-      setStates((prev) => ({ ...prev, options: [] }));
-    }
   };
 
-  useEffect(() => {
-    getAllCategories();
-  }, []);
-
-  const delCategory = async () => {
-    const { category } = states;
-    const data: any = await BlogServices.deleteCategory(category[category.length - 1]).catch((e) =>
-      message.error(`错误：${e}`)
-    );
-    if (data.success) {
-      message.success('删除成功');
-    } else {
-      message.warning(data.msg);
-    }
-  };
-
-  const onCascaderChange = (value: any[]) => {
-    // changeSelectState();
-    setStates((prev: any) => ({
-      ...prev,
-      category: value,
-    }));
-  };
-
-  const handleOk = async () => {
-    const { category, categoryName } = states;
-    const resp: any = await AdminServices.addCategory(
-      category[category.length - 1],
-      category.length,
-      categoryName
-    ).catch((e: any) => message.error(`错误：${e}`));
-    if (resp.success) {
-      message.success('添加成功');
-      getAllCategories();
-    } else {
-      message.warning(resp.msg);
-    }
-  };
-
-  const { category, options } = states;
   return (
     <div className="CategoryManage">
       <div className="category-item">
@@ -78,20 +54,33 @@ function Index() {
           style={{ width: '100%' }}
           options={options}
           placeholder="类目"
-          onChange={onCascaderChange}
+          onChange={handleCascaderChange}
           changeOnSelect
+          loading={isLoading}
         />
-        <Button style={{ margin: '0 10px' }} onClick={delCategory}>
+        <Button
+          style={{ margin: '0 10px' }}
+          onClick={handleDelete}
+          loading={deleteCategory.isPending}
+          disabled={category.length === 0}
+        >
           删除
         </Button>
       </div>
       <div className="category-item">
         <Input
-          value={states.categoryName}
-          onChange={(e) => setStates((prev) => ({ ...prev, categoryName: e.target.value }))}
+          value={categoryName}
+          onChange={(e) => setCategoryName(e.target.value)}
           placeholder="类目名"
+          onPressEnter={handleAdd}
         />
-        <Button style={{ margin: '0 10px' }} type="primary" onClick={handleOk}>
+        <Button
+          style={{ margin: '0 10px' }}
+          type="primary"
+          onClick={handleAdd}
+          loading={addCategory.isPending}
+          disabled={!categoryName.trim() || category.length === 0}
+        >
           添加
         </Button>
       </div>

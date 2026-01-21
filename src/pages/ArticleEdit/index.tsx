@@ -1,59 +1,31 @@
 import { useEffect, useState } from 'react';
-import { Button, Cascader, Input, Layout, message, Switch } from 'antd';
-import { useParams } from 'react-router-dom';
-import { ContentState, convertToRaw, EditorState } from 'draft-js';
+import { Button, Cascader, Input, Layout, Spin, Switch } from 'antd';
+import { useParams, useNavigate } from 'react-router-dom';
 import { Editor } from 'react-draft-wysiwyg';
-import draftToHtml from 'draftjs-to-html';
-import htmlToDraft from 'html-to-draftjs';
 import MonacoEditor from '@monaco-editor/react';
 import ReactMarkdown from 'react-markdown';
 import config from '@/helpers/config';
-import AdminServices from '@/services/AdminServices';
-import BlogServices from '@/services/BlogServices';
+import { useCategories } from '@/hooks/useCategories';
+import { useArticleEdit } from '@/hooks/useArticleEdit';
 import './index.scss';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
-import { handleOptions } from '@/utils/tools';
 
-interface States {
-  title: string;
-  options: any[];
-  category: any[];
-  editor: any;
-  textType: 'md' | 'html';
-  editorState: any;
-  markdownContent: string;
-  articleId: number;
-  categoryId: number;
-}
 function Index() {
-  const { categoryId, articleId } = useParams();
-  const [states, setStates] = useState<States>({
-    title: '',
-    options: [],
-    category: [],
-    editor: null,
-    textType: 'md',
-    editorState: null,
-    markdownContent: '',
-    articleId: articleId ? parseInt(articleId, 10) : 0,
-    categoryId: categoryId ? +categoryId : 0,
-  });
+  const { articleId, categoryId } = useParams();
+  const navigate = useNavigate();
+  const { data: categoryOptions = [], isLoading: categoriesLoading } = useCategories();
 
-  // get category select options data.
-  const getAllCategories = async () => {
-    const resp: any = await BlogServices.getAllCategories().catch((err: any) => {
-      message.error(`错误：${err}`);
-      throw err;
-    });
-    if (resp.success) {
-      const options = handleOptions(resp.data);
-      setStates((prev) => ({ ...prev, options }));
-      return options;
-    } else {
-      message.warning(resp.msg);
-      return [];
-    }
-  };
+  const numArticleId = articleId ? parseInt(articleId, 10) : undefined;
+  const {
+    state,
+    updateState,
+    publishArticle,
+    isLoading: articleLoading,
+    isPublishing,
+  } = useArticleEdit(numArticleId);
+
+  const [category, setCategory] = useState<any[]>([]);
+  const [editor, setEditor] = useState<any>(null);
 
   /**
    * 在选项树中查找对应节点的完整路径
@@ -82,122 +54,49 @@ function Index() {
     return null;
   };
 
-  /**
-   * 解析html文章展示
-   * @param articleDetail
-   */
-  const initHtmlArticle = (articleDetail: any) => {
-    const html = articleDetail ? articleDetail.content : '';
-    const contentBlock = htmlToDraft(html);
-    if (contentBlock) {
-      const contentState = ContentState.createFromBlockArray(contentBlock.contentBlocks);
-      const editorState = EditorState.createWithContent(contentState);
-      setStates((prev) => ({ ...prev, editorState }));
-    }
-  };
-
-  /**
-   * 解析文档展示
-   * @param detail
-   * @param options 类目选项数据
-   */
-  // eslint-disable-next-line react-hooks/exhaustive-deps
-  const initArticle = (detail: any, options: any[] = []) => {
-    if (detail.text_type === 'md') {
-      setStates((prev) => ({ ...prev, markdownContent: detail.content }));
-    } else if (detail.text_type === 'html') {
-      initHtmlArticle(detail);
-    }
-
-    // 根据 category_id 查找完整路径
-    const categoryPath = findCategoryPath(options, detail.category_id);
-
-    setStates((prev) => ({
-      ...prev,
-      title: detail.title,
-      textType: detail.text_type,
-      category: categoryPath || [],
-      categoryId: detail.category_id,
-    }));
-  };
-
-  const getArticleDetail = async (options: any[] = []) => {
-    if (!articleId) return;
-    const artId = parseInt(articleId, 10);
-    const resp: any = await BlogServices.getArticleDetail(artId).catch((err: any) =>
-      message.error(`错误：${err}`)
-    );
-    if (resp.success) {
-      initArticle(resp.data, options);
-    } else {
-      message.warning(resp.msg);
-    }
-  };
-
+  // Sync category when article data loads or when categoryId from URL changes
   useEffect(() => {
-    const initData = async () => {
-      // 先加载类目选项
-      const options = await getAllCategories();
-      // 再加载文章详情（传入 options）
-      await getArticleDetail(options);
-    };
-    initData();
-  }, []);
+    if (state.categoryId) {
+      const categoryPath = findCategoryPath(categoryOptions, state.categoryId);
+      setCategory(categoryPath || []);
+    } else if (categoryId) {
+      const categoryIdNum = parseInt(categoryId, 10);
+      const categoryPath = findCategoryPath(categoryOptions, categoryIdNum);
+      setCategory(categoryPath || []);
+    }
+  }, [state.categoryId, categoryId, categoryOptions]);
 
   const onCascaderChange = (value: any[]) => {
-    setStates((prev) => ({ ...prev, category: value, categoryId: value[value.length - 1] }));
+    setCategory(value);
   };
 
-  const onEditorStateChange = (editorState: any) => {
-    setStates((prev) => ({ ...prev, editorState }));
+  const onEditorStateChange = (newEditorState: any) => {
+    updateState({ editorState: newEditorState });
   };
 
-  const onInputChange = (e: any) => {
-    setStates((prev) => ({ ...prev, title: e.target.value }));
-  };
-
-  const publish = async (body: any) => {
-    const resp: any = await AdminServices.publishArticle(body);
-    if (resp.success) {
-      message.success('发布成功！');
-    } else {
-      message.warning(resp.msg);
-    }
+  const onInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    updateState({ title: e.target.value });
   };
 
   const onClickPublish = () => {
-    const {
-      title,
-      articleId: artId,
-      categoryId: cateId,
-      editorState,
-      textType,
-      markdownContent,
-    } = states;
-    let content = '';
-    if (textType === 'md') {
-      content = markdownContent;
-    } else {
-      const rawContent = convertToRaw(editorState.getCurrentContent());
-      content = draftToHtml(rawContent);
+    const categoryIdValue = category.length > 0 ? category[category.length - 1] : 0;
+    updateState({ categoryId: categoryIdValue });
+
+    const additionalData: { id?: number } = {};
+    if (numArticleId && numArticleId !== 0) {
+      additionalData.id = numArticleId;
     }
 
-    const body: any = {
-      title,
-      categoryId: cateId,
-      content,
-      textType,
-    };
+    publishArticle(additionalData);
 
-    if (articleId) {
-      body.id = artId;
-    }
-    publish(body);
+    // Navigate after a short delay to allow mutation to complete
+    setTimeout(() => {
+      navigate('/articleListManage');
+    }, 500);
   };
 
   const onEditorChange = (newValue: string | undefined) => {
-    window.console.log('onChange', newValue);
-    setStates((prev) => ({ ...prev, markdownContent: newValue || '' }));
+    updateState({ markdownContent: newValue || '' });
   };
 
   const uploadImageCallBack = (file: any) =>
@@ -219,28 +118,35 @@ function Index() {
     });
 
   const updateDimensions = () => {
-    const { editor } = states;
-    editor.layout();
+    if (editor) {
+      editor.layout();
+    }
   };
 
-  const editorDidMount = (editor: any) => {
+  const editorDidMount = (monacoEditor: any) => {
     window.addEventListener('resize', updateDimensions);
-    setStates((prev) => ({ ...prev, editor }));
+    setEditor(monacoEditor);
     // focus the editor
-    editor.focus();
+    monacoEditor.focus();
   };
 
   const editorChanged = (checked: boolean) => {
-    setStates((prev) => ({
-      ...prev,
-      textType: checked ? 'md' : 'html',
-    }));
+    updateState({ textType: checked ? 'md' : 'html' });
   };
 
   const editorConfig = {
     renderSideBySide: false,
     selectOnLineNumbers: true,
   };
+
+  if (articleLoading) {
+    return (
+      <Layout className="ArticleEdit" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
+        <Spin size="large" tip="加载文章..." />
+      </Layout>
+    );
+  }
+
   return (
     <Layout className="ArticleEdit">
       <div
@@ -252,51 +158,52 @@ function Index() {
       >
         <Input.Group compact>
           <Cascader
-            value={states.category}
+            value={category}
             style={{ maxWidth: 300, width: 300 }}
-            options={states.options}
+            options={categoryOptions}
             placeholder="类目"
             onChange={onCascaderChange}
             changeOnSelect
+            loading={categoriesLoading}
           />
           <Input
             name="title"
-            value={states.title}
+            value={state.title}
             style={{ width: 280 }}
             placeholder="标题"
             onChange={onInputChange}
           />
         </Input.Group>
-        <Button type="primary" onClick={onClickPublish}>
+        <Button type="primary" onClick={onClickPublish} loading={isPublishing}>
           是时候让大家看看神的旨意了
         </Button>
         <Switch
           checkedChildren="Markdown"
           unCheckedChildren="RichText"
           onChange={editorChanged}
-          checked={states.textType === 'md'}
+          checked={state.textType === 'md'}
         />
       </div>
-      {states?.textType === 'md' ? (
+      {state.textType === 'md' ? (
         <div className="markdown-container">
           <div className="monaco-container">
             <MonacoEditor
               height="600px"
               language="markdown"
               theme="vs-light"
-              value={states.markdownContent}
+              value={state.markdownContent}
               options={editorConfig}
               onChange={onEditorChange}
               onMount={editorDidMount}
             />
           </div>
           <div className="preview-container">
-            <ReactMarkdown>{states.markdownContent}</ReactMarkdown>
+            <ReactMarkdown>{state.markdownContent}</ReactMarkdown>
           </div>
         </div>
       ) : (
         <Editor
-          editorState={states.editorState}
+          editorState={state.editorState}
           toolbarClassName="rdw-storybook-toolbar"
           wrapperClassName="rdw-storybook-wrapper"
           editorClassName="rdw-storybook-editor"
