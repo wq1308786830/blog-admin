@@ -31,3 +31,8 @@ export default defineConfig({
     include: ['react', 'react-dom'],
   },
 })
+
+declare module '*.scss' {
+  const content: { [className: string]: string }
+  export default content
+}

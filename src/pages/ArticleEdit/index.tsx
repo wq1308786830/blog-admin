@@ -156,15 +156,15 @@ function Index() {
     publish(body);
   };
 
-  const onEditorChange = (newValue: string, e: any) => {
-    window.console.log('onChange', newValue, e);
-    setStates((prev) => ({ ...prev, markdownContent: newValue }));
+  const onEditorChange = (newValue: string | undefined) => {
+    window.console.log('onChange', newValue);
+    setStates((prev) => ({ ...prev, markdownContent: newValue || '' }));
   };
 
   const uploadImageCallBack = (file: any) =>
     new Promise((resolve, reject) => {
       const xhr = new XMLHttpRequest();
-      xhr.open('POST', `${config.Config[config.env]}/manage/uploadBlgImg`);
+      xhr.open('POST', `${config.prefix}/manage/uploadBlgImg`);
       xhr.setRequestHeader('Authorization', 'Client-ID XXXXX');
       const data = new FormData();
       data.append('image', file);
