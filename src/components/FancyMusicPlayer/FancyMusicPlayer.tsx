@@ -14,14 +14,15 @@ function FancyMusicPlayer() {
   const [musicController, setMusicController] = useState<React.ReactElement | null>(null);
   const requestRef = useRef<number | undefined>(undefined);
 
-  const onResize = useCallback(() => {
+  const onResize = () => {
     const container = document.getElementById('container');
     if (container && rendererRef.current) {
       rendererRef.current.setSize(container.offsetWidth, container.offsetHeight);
     }
-  }, []);
+  };
 
-  const renderThree = useCallback(() => {
+  const animate = useCallback(() => {
+    requestRef.current = requestAnimationFrame(animate);
     if (
       analyserRef.current &&
       uniformsRef.current &&
@@ -35,19 +36,7 @@ function FancyMusicPlayer() {
     }
   }, []);
 
-  const animate = useCallback(() => {
-    requestRef.current = requestAnimationFrame(animate);
-    renderThree();
-  }, [renderThree]);
-
-  const renderController = useCallback(
-    (audioObj: THREE.Audio, audioLoaderObj: THREE.AudioLoader) => {
-      setMusicController(<MusicController audioObj={audioObj} audioLoaderObj={audioLoaderObj} />);
-    },
-    []
-  );
-
-  const init = useCallback(() => {
+  const init = () => {
     const fftSize = 128;
     const cWidth = 412;
     const cHeight = 170;
@@ -70,7 +59,7 @@ function FancyMusicPlayer() {
     const listener = new THREE.AudioListener();
     const audio = new THREE.Audio(listener);
 
-    renderController(audio, audioLoader);
+    setMusicController(<MusicController audioObj={audio} audioLoaderObj={audioLoader} />);
 
     const analyser = new THREE.AudioAnalyser(audio, fftSize);
 
@@ -111,7 +100,7 @@ function FancyMusicPlayer() {
     uniformsRef.current = uniforms;
 
     window.addEventListener('resize', onResize, false);
-  }, [onResize, renderController]);
+  };
 
   useEffect(() => {
     init();
@@ -127,7 +116,7 @@ function FancyMusicPlayer() {
         rendererRef.current.dispose();
       }
     };
-  }, [init, animate, onResize]);
+  }, [animate, onResize]);
 
   return (
     <div className="FancyMusicPlayer">

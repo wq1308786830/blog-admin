@@ -2,7 +2,7 @@
  * Author: Russell
  * This component is use to control the audio status.
  */
-import { useEffect, useState, useCallback, useRef } from 'react';
+import { useEffect, useState, useRef } from 'react';
 import { Tooltip } from 'antd';
 import { CannoMP3, MP3358232, PingPongMP3, SkullbeatzMP3, EndeavorsMP3 } from '@/assets';
 import './MusicController.less';
@@ -38,11 +38,11 @@ function MusicController({ audioObj: audio, audioLoaderObj: audioLoader }: Music
     }
   }, [audio]);
 
-  const setStatePlay = useCallback((playing: boolean) => {
+  const setStatePlay = (playing: boolean) => {
     setIsPlaying(playing);
-  }, []);
+  };
 
-  const loadPlay = useCallback(() => {
+  const loadPlay = () => {
     audioLoader.load(
       playList[currPlayIndexRef.current],
       /**
@@ -61,9 +61,9 @@ function MusicController({ audioObj: audio, audioLoaderObj: audioLoader }: Music
         console.log(`${(xhr.loaded / xhr.total) * 100}% loaded`);
       }
     );
-  }, [audio, audioLoader, playList, setStatePlay]);
+  };
 
-  const preMusic = useCallback(() => {
+  const preMusic = () => {
     if (audio.buffer) {
       audio.stop();
       setStatePlay(false);
@@ -74,9 +74,9 @@ function MusicController({ audioObj: audio, audioLoaderObj: audioLoader }: Music
     } else {
       currPlayIndexRef.current = 0;
     }
-  }, [audio, loadPlay, setStatePlay]);
+  };
 
-  const play = useCallback(() => {
+  const play = () => {
     // 注意：audioLoader的load方法加载文件的时候是异步的，所以要把时间线上应该在加载之后的事情放在load里面的回掉函数里面
     if (!audio.buffer) {
       loadPlay();
@@ -84,14 +84,14 @@ function MusicController({ audioObj: audio, audioLoaderObj: audioLoader }: Music
       audio.play();
     }
     setStatePlay(true);
-  }, [audio, loadPlay, setStatePlay]);
+  };
 
-  const pause = useCallback(() => {
+  const pause = () => {
     audio.pause();
     setStatePlay(false);
-  }, [audio, setStatePlay]);
+  };
 
-  const nextMusic = useCallback(() => {
+  const nextMusic = () => {
     if (audio.buffer) {
       audio.stop();
       setStatePlay(false);
@@ -102,7 +102,7 @@ function MusicController({ audioObj: audio, audioLoaderObj: audioLoader }: Music
     } else {
       currPlayIndexRef.current = playList.length - 1;
     }
-  }, [audio, loadPlay, setStatePlay, playList.length]);
+  };
 
   const playButton = isPlaying ? (
     <Tooltip title="死鬼你要抛弃我了嘛？嘤嘤嘤！">
