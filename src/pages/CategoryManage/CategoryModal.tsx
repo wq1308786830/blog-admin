@@ -1,6 +1,16 @@
 import { useEffect, useImperativeHandle, useState, forwardRef } from 'react';
-import { Input, message, Modal } from 'antd';
 import AdminServices from '@/services/AdminServices';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import {
+  Dialog,
+  DialogContent,
+  DialogDescription,
+  DialogFooter,
+  DialogHeader,
+  DialogTitle,
+} from '@/components/ui/dialog';
+import { showSuccess, showError, showWarning } from '@/lib/toast';
 
 interface CategoryModalProps {
   data: {
@@ -30,42 +40,46 @@ function CategoryModal(props: CategoryModalProps, ref: React.ForwardedRef<unknow
   const handleOk = async () => {
     const { fatherId, level, categoryName } = states;
     try {
-      const resp = await AdminServices.addCategory(Number(fatherId), level, categoryName);
+      const resp = await AdminServices.addCategory(Number(fatherId), level, categoryName || '');
       if (resp.success) {
-        message.success('添加成功');
+        showSuccess('添加成功');
+        setStates((prev) => ({ ...prev, visible: false, categoryName: '' }));
       } else {
-        message.warning(resp.msg);
+        showWarning(resp.msg || '添加失败');
       }
     } catch (e: unknown) {
       if (e instanceof Error) {
-        message.error(`错误：${e.message}`);
+        showError(`错误：${e.message}`);
       } else {
-        message.error('未知错误');
+        showError('未知错误');
       }
     }
   };
 
-  const { confirmLoading } = states;
   return (
-    <Modal
-      width={300}
-      title="添加类目"
-      okText="确定"
-      cancelText="取消"
-      wrapClassName="vertical-center-modal"
-      open={states.visible}
-      confirmLoading={confirmLoading}
-      onOk={handleOk}
-      onCancel={() => setStates((prev) => ({ ...prev, visible: false }))}
-    >
-      <p>
-        <Input
-          value={states.categoryName}
-          onChange={(e) => setStates((prev) => ({ ...prev, categoryName: e.target.value }))}
-          placeholder="类目名"
-        />
-      </p>
-    </Modal>
+    <Dialog open={states.visible} onOpenChange={(open) => setStates((prev) => ({ ...prev, visible: open }))}>
+      <DialogContent className="sm:max-w-[300px]">
+        <DialogHeader>
+          <DialogTitle>添加类目</DialogTitle>
+          <DialogDescription>输入新类目的名称</DialogDescription>
+        </DialogHeader>
+        <div className="py-4">
+          <Input
+            value={states.categoryName}
+            onChange={(e) => setStates((prev) => ({ ...prev, categoryName: e.target.value }))}
+            placeholder="类目名"
+          />
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={() => setStates((prev) => ({ ...prev, visible: false }))}>
+            取消
+          </Button>
+          <Button onClick={handleOk} disabled={states.confirmLoading}>
+            确定
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
   );
 }
 

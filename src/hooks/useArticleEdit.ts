@@ -4,7 +4,7 @@ import AdminServices from '@/services/AdminServices';
 import BlogServices from '@/services/BlogServices';
 import { queryKeys } from '@/lib/query-client';
 import { CreateArticleDto } from '@/types';
-import { message } from 'antd';
+import { showSuccess, showError } from '@/lib/toast';
 import { ContentState, convertToRaw, EditorState } from 'draft-js';
 import htmlToDraft from 'html-to-draftjs';
 import draftToHtml from 'draftjs-to-html';
@@ -77,13 +77,13 @@ export function useArticleEdit(articleId: number | undefined) {
   const publishMutation = useMutation({
     mutationFn: (body: CreateArticleDto) => AdminServices.publishArticle(body),
     onSuccess: async () => {
-      message.success('发布成功！');
+      showSuccess('发布成功！');
       // Invalidate article lists to show updated data
       await queryClient.invalidateQueries({ queryKey: queryKeys.articles.lists() });
       await queryClient.invalidateQueries({ queryKey: queryKeys.articles.detail(articleId || 0) });
     },
     onError: (err: Error) => {
-      message.error(`错误：${err.message}`);
+      showError(`错误：${err.message}`);
     },
   });
 

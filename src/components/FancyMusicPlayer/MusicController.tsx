@@ -3,7 +3,7 @@
  * This component is use to control the audio status.
  */
 import { useEffect, useState, useRef } from 'react';
-import { Tooltip } from 'antd';
+import { Tooltip, TooltipContent, TooltipProvider, TooltipTrigger } from '@/components/ui/tooltip';
 import { CannoMP3, MP3358232, PingPongMP3, SkullbeatzMP3, EndeavorsMP3 } from '@/assets';
 import './MusicController.less';
 
@@ -14,7 +14,7 @@ interface PlayButtonProps {
 
 function PlayButton({ onClick, children }: PlayButtonProps) {
   return (
-    <span role="presentation" onClick={onClick}>
+    <span role="presentation" onClick={onClick} className="cursor-pointer">
       {children}
     </span>
   );
@@ -105,29 +105,51 @@ function MusicController({ audioObj: audio, audioLoaderObj: audioLoader }: Music
   };
 
   const playButton = isPlaying ? (
-    <Tooltip title="死鬼你要抛弃我了嘛？嘤嘤嘤！">
-      <PlayButton onClick={pause}>Pause</PlayButton>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <PlayButton onClick={pause}>Pause</PlayButton>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>死鬼你要抛弃我了嘛？嘤嘤嘤！</p>
+      </TooltipContent>
     </Tooltip>
   ) : (
-    <Tooltip title="想我了嘛？">
-      <PlayButton onClick={play}>Play</PlayButton>
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <PlayButton onClick={play}>Play</PlayButton>
+      </TooltipTrigger>
+      <TooltipContent>
+        <p>想我了嘛？</p>
+      </TooltipContent>
     </Tooltip>
   );
 
   return (
-    <div className="MusicController">
-      <Tooltip title="好马不吃回头草，点了你就不是好马">
-        <span role="presentation" onClick={preMusic}>
-          上一首
-        </span>
-      </Tooltip>
-      {playButton}
-      <Tooltip title="吃着碗里的想着锅里的，三心二意">
-        <span role="presentation" onClick={nextMusic}>
-          下一首
-        </span>
-      </Tooltip>
-    </div>
+    <TooltipProvider>
+      <div className="MusicController">
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span role="presentation" onClick={preMusic} className="cursor-pointer">
+              上一首
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>好马不吃回头草，点了你就不是好马</p>
+          </TooltipContent>
+        </Tooltip>
+        {playButton}
+        <Tooltip>
+          <TooltipTrigger asChild>
+            <span role="presentation" onClick={nextMusic} className="cursor-pointer">
+              下一首
+            </span>
+          </TooltipTrigger>
+          <TooltipContent>
+            <p>吃着碗里的想着锅里的，三心二意</p>
+          </TooltipContent>
+        </Tooltip>
+      </div>
+    </TooltipProvider>
   );
 }
 

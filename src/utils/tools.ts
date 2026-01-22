@@ -1,5 +1,6 @@
-import { message } from 'antd';
 import { Category, CategoryOption } from '@/types';
+import { showInfo } from '@/lib/toast';
+import { toast as sonnerToast } from 'sonner';
 
 /**
  * 展示loading
@@ -9,9 +10,11 @@ import { Category, CategoryOption } from '@/types';
  */
 export function loading(isShow = true, content = '正在加载...', afterClose = () => {}) {
   if (isShow) {
-    message.loading(content, 300, afterClose);
+    sonnerToast.loading(content, {
+      id: 'global-loading',
+    });
   } else {
-    message.destroy();
+    sonnerToast.dismiss('global-loading');
 
     if (afterClose !== undefined) {
       afterClose();
@@ -21,11 +24,10 @@ export function loading(isShow = true, content = '正在加载...', afterClose =
 
 /**
  * 展示toast
- * @param afterClose 关闭后的执行函数
  * @param content toast文案
  */
-export function toast(content: React.ReactNode, afterClose = undefined) {
-  message.info(content, 2, afterClose);
+export function toast(content: React.ReactNode) {
+  showInfo(String(content));
 }
 
 /**

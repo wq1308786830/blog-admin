@@ -1,16 +1,12 @@
 import { lazy, Suspense } from 'react';
 import { createBrowserRouter, RouterProvider } from 'react-router-dom';
-import { Spin } from 'antd';
-import moment from 'moment';
-import 'moment/locale/zh-cn';
+import { Loader } from '@/components/ui/loader';
 import './App.scss';
-
-moment.locale('zh-cn');
 
 function Loading() {
   return (
-    <div className="loading">
-      <Spin size="large" />
+    <div className="flex items-center justify-center min-h-screen">
+      <Loader size="lg" />
     </div>
   );
 }

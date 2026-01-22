@@ -1,6 +1,6 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminServices from '@/services/AdminServices';
-import { message } from 'antd';
+import { showSuccess, showError } from '@/lib/toast';
 
 export interface LoginFormData {
   username: string;
@@ -15,16 +15,16 @@ export function useLogin() {
     onSuccess: async (resp: any) => {
       if (resp.success) {
         localStorage.setItem('user', JSON.stringify(resp.data));
-        message.success('登录成功');
+        showSuccess('登录成功');
         // Clear any cached data from previous session
         queryClient.clear();
         window.location.href = '/';
       } else {
-        message.error(resp.msg || 'Login failed');
+        showError(resp.msg || 'Login failed');
       }
     },
     onError: (err: Error) => {
-      message.error(`错误：${err.message}`);
+      showError(`错误：${err.message}`);
     },
   });
 }
@@ -39,11 +39,11 @@ export function useLogout() {
       queryClient.clear();
     },
     onSuccess: () => {
-      message.success('已退出登录');
+      showSuccess('已退出登录');
       window.location.href = '/login';
     },
     onError: (err: Error) => {
-      message.error(`错误：${err.message}`);
+      showError(`错误：${err.message}`);
     },
   });
 }

@@ -8,13 +8,12 @@
   }
 
   .trigger:hover {
-    color: #1890ff;
+    color: var(--color-primary);
   }
 
   .logo {
     height: 32px;
-    background: rgba(255,255,255,.2);
+    background: var(--color-muted);
     margin: 16px;
   }
 }
-

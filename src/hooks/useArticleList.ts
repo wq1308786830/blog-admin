@@ -2,7 +2,7 @@ import { useInfiniteQuery, useMutation, useQuery, useQueryClient } from '@tansta
 import AdminServices from '@/services/AdminServices';
 import { queryKeys } from '@/lib/query-client';
 import { Article, ArticleFilters, CreateArticleDto } from '@/types';
-import { message } from 'antd';
+import { showSuccess, showError } from '@/lib/toast';
 
 export function useArticleList(filters: ArticleFilters) {
   return useInfiniteQuery({
@@ -49,26 +49,26 @@ export function useArticleActions() {
       context?.previousArticles.forEach(([queryKey, data]) => {
         queryClient.setQueryData(queryKey, data);
       });
-      message.error(`错误：${err.message}`);
+      showError(`错误：${err.message}`);
     },
     onSettled: async () => {
       // Refetch to ensure server state
       await queryClient.invalidateQueries({ queryKey: queryKeys.articles.lists() });
     },
     onSuccess: () => {
-      message.success('删除成功');
+      showSuccess('删除成功');
     },
   });
 
   const publishMutation = useMutation({
     mutationFn: (body: CreateArticleDto) => AdminServices.publishArticle(body),
     onSuccess: async () => {
-      message.success('发布成功');
+      showSuccess('发布成功');
       // Invalidate article lists to show updated data
       await queryClient.invalidateQueries({ queryKey: queryKeys.articles.lists() });
     },
     onError: (err: Error) => {
-      message.error(`错误：${err.message}`);
+      showError(`错误：${err.message}`);
     },
   });
 

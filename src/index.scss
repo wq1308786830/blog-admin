@@ -1,17 +1,102 @@
-:root {
-  --color-font: #404040;
-  --color-background: #fdfdfd;
-  --view-minmax: calc((100vw - 500px) / (1920 - 500));
+@use "tailwindcss";
+
+@theme {
+  /* 基础色 */
+  --color-background: oklch(100% 0 0);
+  --color-foreground: oklch(14% 0 0);
+  --color-card: oklch(100% 0 0);
+  --color-card-foreground: oklch(14% 0 0);
+  --color-popover: oklch(100% 0 0);
+  --color-popover-foreground: oklch(14% 0 0);
+  
+  /* 主色 - 深灰黑 */
+  --color-primary: oklch(20% 0 0);
+  --color-primary-foreground: oklch(98% 0 0);
+  /* 兼容 tailwind.config 中的 --primary 变量: 设置为 #505050 对应的 HSL (0 0% 31%) */
+  --primary: 0 0% 31%; /* #505050 */
+  --primary-foreground: 0 0% 98%;
+  
+  /* 次要色 */
+  --color-secondary: oklch(96% 0 0);
+  --color-secondary-foreground: oklch(14% 0 0);
+  
+  /* 柔和色 */
+  --color-muted: oklch(96% 0 0);
+  --color-muted-foreground: oklch(45% 0 0);
+  
+  /* 强调色 */
+  --color-accent: oklch(96% 0 0);
+  --color-accent-foreground: oklch(14% 0 0);
+  
+  /* 错误/危险色 */
+  --color-destructive: oklch(55% 0.22 25);
+  --color-destructive-foreground: oklch(98% 0 0);
+  
+  /* 边框和输入框 */
+  --color-border: oklch(90% 0 0);
+  --color-input: oklch(90% 0 0);
+  --color-ring: oklch(20% 0 0);
+  
+  /* 圆角 */
+  --radius: 0.5rem;
+  
+  /* 自定义扩展色 */
+  --color-link: oklch(50% 0.15 250);
+  --color-link-hover: oklch(40% 0.15 250);
+  --color-success: oklch(65% 0.2 145);
+  --color-code-bg: oklch(97% 0 0);
+  --color-code-border: oklch(20% 0 0);
 }
+
+@media (prefers-color-scheme: dark) {
+  @theme {
+    --color-background: oklch(14% 0 0);
+    --color-foreground: oklch(98% 0 0);
+    --color-card: oklch(18% 0 0);
+    --color-card-foreground: oklch(98% 0 0);
+    --color-popover: oklch(18% 0 0);
+    --color-popover-foreground: oklch(98% 0 0);
+    --color-primary: oklch(90% 0 0);
+    --color-primary-foreground: oklch(14% 0 0);
+    --color-secondary: oklch(25% 0 0);
+    --color-secondary-foreground: oklch(98% 0 0);
+    --color-muted: oklch(25% 0 0);
+    --color-muted-foreground: oklch(65% 0 0);
+    --color-accent: oklch(25% 0 0);
+    --color-accent-foreground: oklch(98% 0 0);
+    --color-destructive: oklch(50% 0.22 25);
+    --color-destructive-foreground: oklch(98% 0 0);
+    --color-border: oklch(25% 0 0);
+    --color-input: oklch(25% 0 0);
+    --color-ring: oklch(80% 0 0);
+    
+    /* 自定义扩展色 - 暗色模式 */
+    --color-link: oklch(65% 0.15 250);
+    --color-link-hover: oklch(75% 0.15 250);
+    --color-success: oklch(70% 0.2 145);
+    --color-code-bg: oklch(20% 0 0);
+    --color-code-border: oklch(80% 0 0);
+  }
+}
+
+* {
+  border-color: var(--color-border);
+}
+
 body {
+  background-color: var(--color-background);
+  color: var(--color-foreground);
   margin: 0;
   padding: 0;
-  height: 100%;
   font-family: sans-serif;
-  #root {
-    height: 100%;
-  }
-  ::selection {
-    background-color: #7b6b99;
-  }
+  min-height: 100vh;
+}
+
+#root {
+  height: 100%;
+}
+
+::selection {
+  background-color: var(--color-primary);
+  color: var(--color-primary-foreground);
 }

@@ -1,6 +1,6 @@
 import { ReactNode } from 'react';
 import { ErrorBoundary } from 'react-error-boundary';
-import { Button } from 'antd';
+import { Button } from '@/components/ui/button';
 
 interface QueryErrorBoundaryProps {
   children: ReactNode;
@@ -9,10 +9,10 @@ interface QueryErrorBoundaryProps {
 
 function ErrorFallback({ error, resetErrorBoundary }: { error: unknown; resetErrorBoundary: () => void }) {
   return (
-    <div style={{ padding: '50px', textAlign: 'center' }}>
-      <h2>出错了</h2>
-      <pre>{error instanceof Error ? error.message : '应用遇到了一些问题'}</pre>
-      <Button type="primary" onClick={resetErrorBoundary}>
+    <div className="flex flex-col items-center justify-center min-h-screen p-[50px] text-center">
+      <h2 className="text-2xl font-semibold mb-4">出错了</h2>
+      <pre className="text-muted-foreground mb-4">{error instanceof Error ? error.message : '应用遇到了一些问题'}</pre>
+      <Button onClick={resetErrorBoundary}>
         重试
       </Button>
     </div>

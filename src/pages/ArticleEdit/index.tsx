@@ -1,19 +1,25 @@
 import { useEffect, useState } from 'react';
-import { Button, Cascader, Input, Layout, Spin, Switch } from 'antd';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Editor } from 'react-draft-wysiwyg';
 import MonacoEditor from '@monaco-editor/react';
 import ReactMarkdown from 'react-markdown';
+import { FileText, Code } from 'lucide-react';
 import config from '@/helpers/config';
 import { useCategories } from '@/hooks/useCategories';
 import { useArticleEdit } from '@/hooks/useArticleEdit';
-import './index.scss';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Switch } from '@/components/ui/switch';
+import { Loader } from '@/components/ui/loader';
+import { CascaderSelect } from '@/components/form/CascaderSelect';
+import type { CategoryOption } from '@/types';
 import 'react-draft-wysiwyg/dist/react-draft-wysiwyg.css';
+import './index.scss';
 
 function Index() {
   const { articleId, categoryId } = useParams();
   const navigate = useNavigate();
-  const { data: categoryOptions = [], isLoading: categoriesLoading } = useCategories();
+  const { data: categoryOptions = [] } = useCategories();
 
   const numArticleId = articleId ? parseInt(articleId, 10) : undefined;
   const {
@@ -24,23 +30,20 @@ function Index() {
     isPublishing,
   } = useArticleEdit(numArticleId);
 
-  const [category, setCategory] = useState<any[]>([]);
+  const [category, setCategory] = useState<(string | number)[]>([]);
   const [editor, setEditor] = useState<any>(null);
 
   /**
    * 在选项树中查找对应节点的完整路径
-   * @param options 选项树
-   * @param targetId 目标ID
-   * @param path 当前路径
-   * @returns 完整路径数组，如果找不到返回 null
    */
   const findCategoryPath = (
-    options: any[],
+    options: CategoryOption[],
     targetId: number,
-    path: number[] = []
-  ): number[] | null => {
+    path: any[] = []
+  ): any[] | null => {
+
     for (const option of options) {
-      const currentPath = [...path, option.value];
+      const currentPath = [...path, option];
       if (option.value === targetId) {
         return currentPath;
       }
@@ -58,15 +61,15 @@ function Index() {
   useEffect(() => {
     if (state.categoryId) {
       const categoryPath = findCategoryPath(categoryOptions, state.categoryId);
-      setCategory(categoryPath || []);
+      setCategory(categoryPath ? categoryPath.map(c => c.value) : []);
     } else if (categoryId) {
       const categoryIdNum = parseInt(categoryId, 10);
       const categoryPath = findCategoryPath(categoryOptions, categoryIdNum);
-      setCategory(categoryPath || []);
+      setCategory(categoryPath ? categoryPath.map(c => c.value) : []);
     }
   }, [state.categoryId, categoryId, categoryOptions]);
 
-  const onCascaderChange = (value: any[]) => {
+  const onCascaderChange = (value: (string | number)[]) => {
     setCategory(value);
   };
 
@@ -79,7 +82,7 @@ function Index() {
   };
 
   const onClickPublish = () => {
-    const categoryIdValue = category.length > 0 ? category[category.length - 1] : 0;
+    const categoryIdValue = category.length > 0 ? Number(category[category.length - 1]) : 0;
     updateState({ categoryId: categoryIdValue });
 
     const additionalData: { id?: number } = {};
@@ -126,7 +129,6 @@ function Index() {
   const editorDidMount = (monacoEditor: any) => {
     window.addEventListener('resize', updateDimensions);
     setEditor(monacoEditor);
-    // focus the editor
     monacoEditor.focus();
   };
 
@@ -141,63 +143,62 @@ function Index() {
 
   if (articleLoading) {
     return (
-      <Layout className="ArticleEdit" style={{ display: 'flex', justifyContent: 'center', alignItems: 'center', height: '100vh' }}>
-        <Spin size="large" tip="加载文章..." />
-      </Layout>
+      <div className="flex items-center justify-center min-h-screen">
+        <Loader size="lg" text="加载文章..." />
+      </div>
     );
   }
 
   return (
-    <Layout className="ArticleEdit">
-      <div
-        style={{
-          marginBottom: '1rem',
-          display: 'flex',
-          justifyContent: 'space-between',
-        }}
-      >
-        <Input.Group compact>
-          <Cascader
+    <div className="space-y-4">
+      {/* Header Section */}
+      <div className="flex flex-wrap items-center justify-between gap-4">
+        <div className="flex flex-wrap items-center gap-2">
+          <CascaderSelect
+            options={categoryOptions as any}
             value={category}
-            style={{ maxWidth: 300, width: 300 }}
-            options={categoryOptions}
-            placeholder="类目"
             onChange={onCascaderChange}
-            changeOnSelect
-            loading={categoriesLoading}
+            placeholder="类目"
+            className="w-[300px]"
           />
           <Input
             name="title"
             value={state.title}
-            style={{ width: 280 }}
             placeholder="标题"
             onChange={onInputChange}
+            className="w-[280px]"
           />
-        </Input.Group>
-        <Button type="primary" onClick={onClickPublish} loading={isPublishing}>
-          是时候让大家看看神的旨意了
-        </Button>
-        <Switch
-          checkedChildren="Markdown"
-          unCheckedChildren="RichText"
-          onChange={editorChanged}
-          checked={state.textType === 'md'}
-        />
+        </div>
+        <div className="flex items-center gap-4">
+          <Button onClick={onClickPublish} disabled={isPublishing}>
+            {isPublishing ? '发布中...' : '是时候让大家看看神的旨意了'}
+          </Button>
+          <div className="flex items-center gap-2">
+            <Code className="h-4 w-4 text-muted-foreground" />
+            <Switch
+              checked={state.textType === 'md'}
+              onCheckedChange={editorChanged}
+            />
+            <FileText className="h-4 w-4 text-muted-foreground" />
+          </div>
+        </div>
       </div>
+
+      {/* Editor Section */}
       {state.textType === 'md' ? (
-        <div className="markdown-container">
-          <div className="monaco-container">
+        <div className="flex gap-4 h-[calc(100vh-260px)] pt-5">
+          <div className="flex-1">
             <MonacoEditor
-              height="600px"
+              height="100%"
               language="markdown"
-              theme="vs-light"
+              theme="vs-dark"
               value={state.markdownContent}
               options={editorConfig}
               onChange={onEditorChange}
               onMount={editorDidMount}
             />
           </div>
-          <div className="preview-container">
+          <div className="flex-1 overflow-y-auto px-5 markdown">
             <ReactMarkdown>{state.markdownContent}</ReactMarkdown>
           </div>
         </div>
@@ -216,7 +217,7 @@ function Index() {
           onEditorStateChange={onEditorStateChange}
         />
       )}
-    </Layout>
+    </div>
   );
 }
 

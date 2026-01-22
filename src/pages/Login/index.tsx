@@ -1,21 +1,16 @@
-import { Card, Col, Form, Layout, Row } from 'antd';
 import NormalLoginForm from './NormalLoginForm';
-import './index.scss';
 
 function Login() {
-  const [form] = Form.useForm();
   return (
-    <Layout className="Login gradient-bg">
-      <div className="back-img">
-        <Row className="form-container">
-          <Col span={6} offset={18}>
-            <Card style={{ width: 350 }} className="Card">
-              <NormalLoginForm form={form} />
-            </Card>
-          </Col>
-        </Row>
+    <div className="min-h-screen gradient-bg">
+      <div className="back-img flex items-center justify-end min-h-screen p-8">
+        <div className="w-[350px]">
+          <div className="Card bg-white/80 backdrop-blur-sm rounded-lg shadow-md p-6">
+            <NormalLoginForm />
+          </div>
+        </div>
       </div>
-    </Layout>
+    </div>
   );
 }
 

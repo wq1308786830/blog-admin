@@ -17,3 +17,12 @@ export interface CategoryOption {
   label: string;
   children?: CategoryOption[];
 }
+
+/**
+ * Cascader option type - compatible with CascaderSelect component
+ */
+export interface CascaderOption {
+  value: string | number;
+  label: string;
+  children?: CascaderOption[];
+}

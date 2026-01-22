@@ -4,7 +4,7 @@ import BlogServices from '@/services/BlogServices';
 import { queryKeys } from '@/lib/query-client';
 import { ApiResponse, Category, CategoryOption } from '@/types';
 import { handleOptions } from '@/utils/tools';
-import { message } from 'antd';
+import { showSuccess, showError } from '@/lib/toast';
 
 export function useCategories() {
   return useQuery({
@@ -14,7 +14,7 @@ export function useCategories() {
       if (resp.success) {
         return handleOptions(resp.data);
       }
-      message.error(resp.msg || 'Failed to fetch categories');
+      showError(resp.msg || 'Failed to fetch categories');
       return [];
     },
     staleTime: 10 * 60 * 1000, // 10 minutes
@@ -28,12 +28,12 @@ export function useAddCategory() {
     mutationFn: (params: { fatherId: number | null; level: number; categoryName: string }) =>
       AdminServices.addCategory(params.fatherId, params.level, params.categoryName),
     onSuccess: async () => {
-      message.success('添加成功');
+      showSuccess('添加成功');
       // Invalidate and refetch categories
       await queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
     },
     onError: (err: Error) => {
-      message.error(`错误：${err.message}`);
+      showError(`错误：${err.message}`);
     },
   });
 }
@@ -44,12 +44,12 @@ export function useDeleteCategory() {
   return useMutation({
     mutationFn: (categoryId: number) => BlogServices.deleteCategory(categoryId),
     onSuccess: async () => {
-      message.success('删除成功');
+      showSuccess('删除成功');
       // Invalidate and refetch categories
       await queryClient.invalidateQueries({ queryKey: queryKeys.categories.all });
     },
     onError: (err: Error) => {
-      message.error(`错误：${err.message}`);
+      showError(`错误：${err.message}`);
     },
   });
 }

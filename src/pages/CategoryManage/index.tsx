@@ -1,17 +1,21 @@
 import { useState } from 'react';
-import { Button, Cascader, Input } from 'antd';
+import { Trash2, Plus } from 'lucide-react';
 import { useCategories, useAddCategory, useDeleteCategory } from '@/hooks/useCategories';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { CascaderSelect } from '@/components/form/CascaderSelect';
+import type { CascaderOption } from '@/components/form/CascaderSelect';
 import './index.scss';
 
 function Index() {
-  const { data: options = [], isLoading } = useCategories();
+  const { data: options = [] } = useCategories();
   const addCategory = useAddCategory();
   const deleteCategory = useDeleteCategory();
 
   const [categoryName, setCategoryName] = useState('');
-  const [category, setCategory] = useState<any[]>([]);
+  const [category, setCategory] = useState<(string | number)[]>([]);
 
-  const handleCascaderChange = (value: any[]) => {
+  const handleCascaderChange = (value: (string | number)[]) => {
     setCategory(value);
   };
 
@@ -19,8 +23,8 @@ function Index() {
     if (category.length === 0) {
       return;
     }
-    const categoryId = category[category.length - 1];
-    deleteCategory.mutate(categoryId);
+    const id = Number(category[category.length - 1]);
+    deleteCategory.mutate(id);
   };
 
   const handleAdd = () => {
@@ -31,10 +35,12 @@ function Index() {
       return;
     }
 
+    const id = Number(category[category.length - 1]);
+
     addCategory.mutate(
       {
-        fatherId: category[category.length - 1],
-        level: category.length,
+        fatherId: id,
+        level: 1, // Will be calculated by backend
         categoryName,
       },
       {
@@ -47,40 +53,41 @@ function Index() {
   };
 
   return (
-    <div className="CategoryManage">
-      <div className="category-item">
-        <Cascader
+    <div className="flex flex-col items-center justify-center gap-4 py-8">
+      <div className="flex items-center w-[500px] gap-2">
+        <CascaderSelect
           value={category}
-          style={{ width: '100%' }}
-          options={options}
-          placeholder="类目"
           onChange={handleCascaderChange}
-          changeOnSelect
-          loading={isLoading}
+          options={options as CascaderOption[]}
+          placeholder="选择要删除的类目"
+          className="flex-1"
         />
         <Button
-          style={{ margin: '0 10px' }}
           onClick={handleDelete}
-          loading={deleteCategory.isPending}
-          disabled={category.length === 0}
+          disabled={!category || deleteCategory.isPending}
+          variant="destructive"
         >
+          <Trash2 className="h-4 w-4" />
           删除
         </Button>
       </div>
-      <div className="category-item">
+      <div className="flex items-center w-[500px] gap-2">
         <Input
           value={categoryName}
           onChange={(e) => setCategoryName(e.target.value)}
-          placeholder="类目名"
-          onPressEnter={handleAdd}
+          placeholder="输入新类目名称"
+          onKeyDown={(e) => {
+            if (e.key === 'Enter') {
+              handleAdd();
+            }
+          }}
+          className="flex-1"
         />
         <Button
-          style={{ margin: '0 10px' }}
-          type="primary"
           onClick={handleAdd}
-          loading={addCategory.isPending}
-          disabled={!categoryName.trim() || category.length === 0}
+          disabled={!categoryName.trim() || !category || addCategory.isPending}
         >
+          <Plus className="h-4 w-4" />
           添加
         </Button>
       </div>
