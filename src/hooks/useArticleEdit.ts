@@ -14,7 +14,7 @@ export interface ArticleEditState {
   categoryId: number;
   textType: 'md' | 'html';
   markdownContent: string;
-  editorState: any;
+  editorState: EditorState;
 }
 
 const initialState: ArticleEditState = {

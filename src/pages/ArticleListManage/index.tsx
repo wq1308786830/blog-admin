@@ -34,11 +34,12 @@ function Index() {
 
   // Build filters object
   const filters: ArticleFilters = {
-    categoryId: selectedCategory.length > 0 ? String(selectedCategory[selectedCategory.length - 1]) : '',
-    dateRange: dateRange && dateRange.from && dateRange.to ? [
-      Math.floor(dateRange.from.getTime() / 1000),
-      Math.floor(dateRange.to.getTime() / 1000)
-    ] : [],
+    categoryId:
+      selectedCategory.length > 0 ? String(selectedCategory[selectedCategory.length - 1]) : '',
+    dateRange:
+      dateRange && dateRange.from && dateRange.to
+        ? [Math.floor(dateRange.from.getTime() / 1000), Math.floor(dateRange.to.getTime() / 1000)]
+        : [],
     text: searchText,
   };
 
@@ -115,12 +116,12 @@ function Index() {
           presets={[
             {
               label: '最近7天',
-              value: [subDays(new Date(), 7), new Date()]
+              value: [subDays(new Date(), 7), new Date()],
             },
             {
               label: '最近30天',
-              value: [subDays(new Date(), 30), new Date()]
-            }
+              value: [subDays(new Date(), 30), new Date()],
+            },
           ]}
         />
         <div className="relative">
@@ -163,9 +164,7 @@ function Index() {
                   >
                     {item.title}
                   </Link>
-                  <p className="text-sm text-muted-foreground line-clamp-2">
-                    {item.description}
-                  </p>
+                  <p className="text-sm text-muted-foreground line-clamp-2">{item.description}</p>
                 </div>
 
                 <div className="flex items-center gap-2 shrink-0">
@@ -184,11 +183,7 @@ function Index() {
 
                   <AlertDialog>
                     <AlertDialogTrigger asChild>
-                      <Button
-                        variant="ghost"
-                        size="sm"
-                        onClick={() => setDeleteTarget(item)}
-                      >
+                      <Button variant="ghost" size="sm" onClick={() => setDeleteTarget(item)}>
                         删除
                       </Button>
                     </AlertDialogTrigger>
@@ -196,16 +191,14 @@ function Index() {
                       <AlertDialogHeader>
                         <AlertDialogTitle>确认删除</AlertDialogTitle>
                         <AlertDialogDescription>
-                          确定要删除这篇文章 "{item.title}" 吗？此操作无法撤销。
+                          确定要删除这篇文章 &ldquo;{item.title}&rdquo; 吗？此操作无法撤销。
                         </AlertDialogDescription>
                       </AlertDialogHeader>
                       <AlertDialogFooter>
                         <AlertDialogCancel onClick={() => setDeleteTarget(null)}>
                           取消
                         </AlertDialogCancel>
-                        <AlertDialogAction onClick={handleDelete}>
-                          确定
-                        </AlertDialogAction>
+                        <AlertDialogAction onClick={handleDelete}>确定</AlertDialogAction>
                       </AlertDialogFooter>
                     </AlertDialogContent>
                   </AlertDialog>

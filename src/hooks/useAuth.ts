@@ -1,6 +1,7 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
 import AdminServices from '@/services/AdminServices';
 import { showSuccess, showError } from '@/lib/toast';
+import type { ApiResponse } from '@/types';
 
 export interface LoginFormData {
   username: string;
@@ -12,7 +13,7 @@ export function useLogin() {
 
   return useMutation({
     mutationFn: (formData: LoginFormData) => AdminServices.login(formData),
-    onSuccess: async (resp: any) => {
+    onSuccess: async (resp: ApiResponse<Record<string, unknown>>) => {
       if (resp.success) {
         localStorage.setItem('user', JSON.stringify(resp.data));
         showSuccess('登录成功');
@@ -50,7 +51,7 @@ export function useLogout() {
 
 // New hook for getting current user from localStorage
 export function useUser() {
-  const getUser = (): any | null => {
+  const getUser = (): Record<string, unknown> | null => {
     const userStr = localStorage.getItem('user');
     if (userStr) {
       try {

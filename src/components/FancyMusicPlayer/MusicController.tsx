@@ -20,9 +20,28 @@ function PlayButton({ onClick, children }: PlayButtonProps) {
   );
 }
 
+interface AudioController {
+  play: () => void;
+  pause: () => void;
+  stop: () => void;
+  setBuffer: (buffer: AudioBuffer) => void;
+  setLoop: (loop: boolean) => void;
+  isPlaying: boolean;
+  buffer: AudioBuffer | null;
+  context: { getOutputTimestamp: () => unknown };
+}
+
+interface AudioLoader {
+  load: (
+    url: string,
+    onSuccess: (buffer: AudioBuffer) => void,
+    onProgress: (xhr: ProgressEvent) => void
+  ) => void;
+}
+
 interface MusicControllerProps {
-  audioObj: any;
-  audioLoaderObj: any;
+  audioObj: AudioController;
+  audioLoaderObj: AudioLoader;
 }
 
 function MusicController({ audioObj: audio, audioLoaderObj: audioLoader }: MusicControllerProps) {

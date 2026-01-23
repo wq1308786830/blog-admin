@@ -1,6 +1,7 @@
 import { useEffect, useState } from 'react';
 import { useParams, useNavigate } from 'react-router-dom';
 import { Editor } from 'react-draft-wysiwyg';
+import { EditorState } from 'draft-js';
 import MonacoEditor from '@monaco-editor/react';
 import ReactMarkdown from 'react-markdown';
 import { FileText, Code } from 'lucide-react';
@@ -31,7 +32,7 @@ function Index() {
   } = useArticleEdit(numArticleId);
 
   const [category, setCategory] = useState<(string | number)[]>([]);
-  const [editor, setEditor] = useState<any>(null);
+  const [editor, setEditor] = useState<unknown>(null);
 
   /**
    * 在选项树中查找对应节点的完整路径
@@ -39,9 +40,8 @@ function Index() {
   const findCategoryPath = (
     options: CategoryOption[],
     targetId: number,
-    path: any[] = []
-  ): any[] | null => {
-
+    path: CategoryOption[] = []
+  ): CategoryOption[] | null => {
     for (const option of options) {
       const currentPath = [...path, option];
       if (option.value === targetId) {
@@ -61,11 +61,11 @@ function Index() {
   useEffect(() => {
     if (state.categoryId) {
       const categoryPath = findCategoryPath(categoryOptions, state.categoryId);
-      setCategory(categoryPath ? categoryPath.map(c => c.value) : []);
+      setCategory(categoryPath ? categoryPath.map((c) => c.value) : []);
     } else if (categoryId) {
       const categoryIdNum = parseInt(categoryId, 10);
       const categoryPath = findCategoryPath(categoryOptions, categoryIdNum);
-      setCategory(categoryPath ? categoryPath.map(c => c.value) : []);
+      setCategory(categoryPath ? categoryPath.map((c) => c.value) : []);
     }
   }, [state.categoryId, categoryId, categoryOptions]);
 
@@ -73,7 +73,7 @@ function Index() {
     setCategory(value);
   };
 
-  const onEditorStateChange = (newEditorState: any) => {
+  const onEditorStateChange = (newEditorState: EditorState) => {
     updateState({ editorState: newEditorState });
   };
 
@@ -102,8 +102,8 @@ function Index() {
     updateState({ markdownContent: newValue || '' });
   };
 
-  const uploadImageCallBack = (file: any) =>
-    new Promise((resolve, reject) => {
+  const uploadImageCallBack = (file: File) =>
+    new Promise<unknown>((resolve, reject) => {
       const xhr = new XMLHttpRequest();
       xhr.open('POST', `${config.prefix}/manage/uploadBlgImg`);
       xhr.setRequestHeader('Authorization', 'Client-ID XXXXX');
@@ -121,15 +121,17 @@ function Index() {
     });
 
   const updateDimensions = () => {
-    if (editor) {
-      editor.layout();
+    if (editor && typeof editor === 'object' && 'layout' in editor) {
+      (editor as { layout: () => void }).layout();
     }
   };
 
-  const editorDidMount = (monacoEditor: any) => {
+  const editorDidMount = (monacoEditor: unknown) => {
     window.addEventListener('resize', updateDimensions);
     setEditor(monacoEditor);
-    monacoEditor.focus();
+    if (typeof monacoEditor === 'object' && monacoEditor !== null && 'focus' in monacoEditor) {
+      (monacoEditor as { focus: () => void }).focus();
+    }
   };
 
   const editorChanged = (checked: boolean) => {
@@ -155,7 +157,7 @@ function Index() {
       <div className="flex flex-wrap items-center justify-between gap-4">
         <div className="flex flex-wrap items-center gap-2">
           <CascaderSelect
-            options={categoryOptions as any}
+            options={categoryOptions as CategoryOption[]}
             value={category}
             onChange={onCascaderChange}
             placeholder="类目"
@@ -175,10 +177,7 @@ function Index() {
           </Button>
           <div className="flex items-center gap-2">
             <Code className="h-4 w-4 text-muted-foreground" />
-            <Switch
-              checked={state.textType === 'md'}
-              onCheckedChange={editorChanged}
-            />
+            <Switch checked={state.textType === 'md'} onCheckedChange={editorChanged} />
             <FileText className="h-4 w-4 text-muted-foreground" />
           </div>
         </div>

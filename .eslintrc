@@ -1,7 +1,36 @@
 {
-  "extends": ["react-app", "react-app/jest"],
+  "extends": [
+    "eslint:recommended",
+    "plugin:react/recommended",
+    "plugin:react-hooks/recommended",
+    "plugin:@typescript-eslint/recommended"
+  ],
+  "parser": "@typescript-eslint/parser",
+  "parserOptions": {
+    "ecmaVersion": "latest",
+    "sourceType": "module",
+    "ecmaFeatures": {
+      "jsx": true
+    }
+  },
+  "plugins": ["react", "react-hooks", "@typescript-eslint"],
+  "settings": {
+    "react": {
+      "version": "detect"
+    }
+  },
   "rules": {
     "react-hooks/rules-of-hooks": "error",
-    "react-hooks/exhaustive-deps": "off"
+    "react-hooks/exhaustive-deps": "off",
+    "@typescript-eslint/no-unused-vars": ["warn", { "argsIgnorePattern": "^_" }],
+    "react/react-in-jsx-scope": "off",
+    "react/prop-types": "off"
+  },
+  "env": {
+    "browser": true,
+    "es2021": true,
+    "node": true
   }
 }
+
+// 阅读antd的DatePicker的相关完整源码，分析并解决当前/src/components/form/DateRangePicker.tsx有没有完全实现antd源码中DatePicker中的RangePicker的全部功能。如果没有，请补全修复相关功能代码。

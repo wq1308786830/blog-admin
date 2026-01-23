@@ -1,6 +1,6 @@
 import md5 from 'md5';
 import { GET, POST, PUT } from '@/utils/request';
-import { ApiResponse, Article, ArticleFilters, CreateArticleDto } from '@/types';
+import { ApiResponse, Article, ArticleFilters, CreateArticleDto, User } from '@/types';
 
 interface LoginFormData {
   username: string;
@@ -12,7 +12,7 @@ function login(formData: LoginFormData) {
     ...formData,
     password: md5(formData.password),
   };
-  return POST('/admin/login', params) as Promise<ApiResponse<any>>;
+  return POST('/admin/login', params) as Promise<ApiResponse<User>>;
 }
 
 function getArticles(option: ArticleFilters, pageIndex: number) {
@@ -29,7 +29,9 @@ function deleteArticle(id: number) {
 }
 
 function addCategory(fatherId: number | null, level: number, categoryName: string) {
-  return PUT('/admin/addCategory', { fatherId, level, categoryName }) as Promise<ApiResponse<unknown>>;
+  return PUT('/admin/addCategory', { fatherId, level, categoryName }) as Promise<
+    ApiResponse<unknown>
+  >;
 }
 
 const adminServices = {
