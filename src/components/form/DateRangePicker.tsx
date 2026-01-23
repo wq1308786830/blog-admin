@@ -523,7 +523,6 @@ const YearRangePickerPanel: React.FC<YearRangePickerPanelProps> = ({
 
   const renderCell = (year: number): React.ReactNode => {
     const date = new Date(year, 0, 1);
-    const isCellDisabled = disabledDate?.(date, { from: value?.from, type: activeRange });
     const inRange = isInRange(year);
     const isStart = value?.from?.getFullYear() === year;
     const isEnd = value?.to?.getFullYear() === year;
@@ -688,7 +687,6 @@ const MonthRangePickerPanel: React.FC<MonthRangePickerPanelProps> = ({
 
   const renderCell = (year: number, month: number): React.ReactNode => {
     const monthDate = new Date(year, month, 1);
-    const isCellDisabled = disabledDate?.(monthDate, { from: value?.from, type: activeRange });
     const inRange = isInRange(year, month);
     const isStart = value?.from?.getFullYear() === year && value?.from?.getMonth() === month;
     const isEnd = value?.to?.getFullYear() === year && value?.to?.getMonth() === month;
@@ -917,6 +915,15 @@ export function DateRangePicker({
     setEndInputValue(toStr);
   }, [selectedRange, resolvedFormat]);
 
+  // Update input values when tempValue changes (during selection)
+  React.useEffect(() => {
+    if (isOpen) {
+      const [fromStr, toStr] = formatDateRange(tempValue || selectedRange, resolvedFormat);
+      setStartInputValue(fromStr);
+      setEndInputValue(toStr);
+    }
+  }, [tempValue, resolvedFormat, isOpen, selectedRange]);
+
   // Sync temp value when opening
   React.useEffect(() => {
     if (isOpen) {
@@ -961,9 +968,19 @@ export function DateRangePicker({
   };
 
   const handleDateSelect = (range: DateRange | undefined, selectedDay: Date) => {
+    // Normalize range for week picker - adjust to week boundaries
+    let normalizedRange = range;
+    if (picker === 'week' && range) {
+      normalizedRange = {
+        from: range.from ? startOfWeek(range.from) : undefined,
+        to: range.to ? endOfWeek(range.to) : undefined,
+      };
+    }
+
     // When we have a complete range and user clicks again, start new selection
     if (tempValue?.from && tempValue?.to) {
-      const newRange = { from: selectedDay, to: undefined };
+      const newFrom = picker === 'week' ? startOfWeek(selectedDay) : selectedDay;
+      const newRange = { from: newFrom, to: undefined };
       setTempValue(newRange);
       setActiveRange('end');
 
@@ -972,24 +989,31 @@ export function DateRangePicker({
       return;
     }
 
-    setTempValue(range);
+    setTempValue(normalizedRange);
 
-    const dateStrings = formatDateRange(range, resolvedFormat);
+    const dateStrings = formatDateRange(normalizedRange, resolvedFormat);
 
     if (!tempValue?.from || activeRange === 'start') {
       setActiveRange('end');
-      onCalendarChange?.(range, dateStrings, { range: 'start' });
+      onCalendarChange?.(normalizedRange, dateStrings, { range: 'start' });
     } else {
-      onCalendarChange?.(range, dateStrings, { range: 'end' });
+      onCalendarChange?.(normalizedRange, dateStrings, { range: 'end' });
     }
 
-    // Auto-close when both dates are selected (for date picker)
-    if (range?.from && range?.to && picker === 'date' && !showTime) {
-      // Small delay to show selection before closing
-      setTimeout(() => {
-        commitChange(range);
-        handleOpenChange(false);
-      }, 100);
+    // Auto-close when both dates are selected
+    // Don't auto-close if needConfirm or showTime is enabled
+    if (normalizedRange?.from && normalizedRange?.to && !showConfirmButton) {
+      // For date/week/month/quarter/year pickers that don't have showTime
+      // auto-close after a complete range is selected
+      const shouldAutoClose = picker !== 'date' || !showTime;
+
+      if (shouldAutoClose) {
+        // Small delay to show selection before closing
+        setTimeout(() => {
+          commitChange(normalizedRange);
+          handleOpenChange(false);
+        }, 100);
+      }
     }
   };
 
@@ -1032,12 +1056,22 @@ export function DateRangePicker({
 
   const handleNowClick = () => {
     const now = new Date();
-    if (activeRange === 'start') {
-      const newRange = { from: now, to: tempValue?.to };
-      setTempValue(newRange);
+    let newRange: DateRange;
+
+    if (activeRange === 'start' || !tempValue?.from) {
+      newRange = { from: now, to: tempValue?.to };
     } else {
-      const newRange = { from: tempValue?.from, to: now };
-      setTempValue(newRange);
+      newRange = { from: tempValue.from, to: now };
+    }
+
+    setTempValue(newRange);
+
+    // Update input values to reflect the new temporary selection
+    const [fromStr, toStr] = formatDateRange(newRange, resolvedFormat);
+    if (activeRange === 'start') {
+      setStartInputValue(fromStr);
+    } else {
+      setEndInputValue(toStr);
     }
   };
 
