@@ -371,7 +371,16 @@ const QuarterRangePickerPanel: React.FC<QuarterRangePickerPanelProps> = ({
   const handleSelect = (year: number, quarter: number) => {
     const date = getQuarterDate(year, quarter);
 
-    if (activeRange === 'start' || !value?.from) {
+    // If we already have a complete range, start a new selection
+    if (value?.from && value?.to) {
+      onSelect({ from: date, to: undefined });
+      return;
+    }
+
+    // Auto-detect: if we have from but no to, set to; otherwise set from
+    if (value?.from && !value?.to) {
+      onSelect({ from: value.from, to: endOfQuarter(date) });
+    } else if (activeRange === 'start' || !value?.from) {
       onSelect({ from: date, to: value?.to });
     } else {
       onSelect({ from: value.from, to: endOfQuarter(date) });
@@ -514,7 +523,16 @@ const YearRangePickerPanel: React.FC<YearRangePickerPanelProps> = ({
   const handleSelect = (year: number) => {
     const date = new Date(year, 0, 1);
 
-    if (activeRange === 'start' || !value?.from) {
+    // If we already have a complete range, start a new selection
+    if (value?.from && value?.to) {
+      onSelect({ from: date, to: undefined });
+      return;
+    }
+
+    // Auto-detect: if we have from but no to, set to; otherwise set from
+    if (value?.from && !value?.to) {
+      onSelect({ from: value.from, to: endOfYear(date) });
+    } else if (activeRange === 'start' || !value?.from) {
       onSelect({ from: date, to: value?.to });
     } else {
       onSelect({ from: value.from, to: endOfYear(date) });
@@ -678,7 +696,16 @@ const MonthRangePickerPanel: React.FC<MonthRangePickerPanelProps> = ({
   const handleSelect = (year: number, month: number) => {
     const date = new Date(year, month, 1);
 
-    if (activeRange === 'start' || !value?.from) {
+    // If we already have a complete range, start a new selection
+    if (value?.from && value?.to) {
+      onSelect({ from: date, to: undefined });
+      return;
+    }
+
+    // Auto-detect: if we have from but no to, set to; otherwise set from
+    if (value?.from && !value?.to) {
+      onSelect({ from: value.from, to: endOfMonth(date) });
+    } else if (activeRange === 'start' || !value?.from) {
       onSelect({ from: date, to: value?.to });
     } else {
       onSelect({ from: value.from, to: endOfMonth(date) });
@@ -967,7 +994,7 @@ export function DateRangePicker({
     onPanelChange?.(orderedRange, [picker, picker]);
   };
 
-  const handleDateSelect = (range: DateRange | undefined, selectedDay: Date) => {
+  const handleDateSelect = (range: DateRange | undefined) => {
     // Normalize range for week picker - adjust to week boundaries
     let normalizedRange = range;
     if (picker === 'week' && range) {
@@ -977,43 +1004,62 @@ export function DateRangePicker({
       };
     }
 
-    // When we have a complete range and user clicks again, start new selection
-    if (tempValue?.from && tempValue?.to) {
-      const newFrom = picker === 'week' ? startOfWeek(selectedDay) : selectedDay;
-      const newRange = { from: newFrom, to: undefined };
-      setTempValue(newRange);
-      setActiveRange('end');
+    const hasFromDate = !!normalizedRange?.from;
+    const hasToDate = !!normalizedRange?.to;
+    const hasCompleteRange = displayRange?.from && displayRange?.to;
+    const hasPartialTempRange = tempValue?.from && !tempValue?.to;
 
-      const dateStrings = formatDateRange(newRange, resolvedFormat);
-      onCalendarChange?.(newRange, dateStrings, { range: 'start' });
+    // Case 1: Starting fresh - no dates selected yet
+    if (!tempValue?.from && !hasCompleteRange) {
+      if (hasFromDate) {
+        setTempValue({ from: normalizedRange.from!, to: undefined });
+        setActiveRange('end');
+        const dateStrings = formatDateRange({ from: normalizedRange.from, to: undefined }, resolvedFormat);
+        onCalendarChange?.({ from: normalizedRange.from, to: undefined }, dateStrings, { range: 'start' });
+      }
       return;
     }
 
-    setTempValue(normalizedRange);
+    // Case 2: Completing a range - we have from date, now selecting to date
+    if (tempValue?.from && !tempValue?.to && hasToDate) {
+      const completedRange = { from: tempValue.from, to: normalizedRange.to! };
+      setTempValue(completedRange);
+      const dateStrings = formatDateRange(completedRange, resolvedFormat);
+      onCalendarChange?.(completedRange, dateStrings, { range: 'end' });
 
-    const dateStrings = formatDateRange(normalizedRange, resolvedFormat);
-
-    if (!tempValue?.from || activeRange === 'start') {
-      setActiveRange('end');
-      onCalendarChange?.(normalizedRange, dateStrings, { range: 'start' });
-    } else {
-      onCalendarChange?.(normalizedRange, dateStrings, { range: 'end' });
-    }
-
-    // Auto-close when both dates are selected
-    // Don't auto-close if needConfirm or showTime is enabled
-    if (normalizedRange?.from && normalizedRange?.to && !showConfirmButton) {
-      // For date/week/month/quarter/year pickers that don't have showTime
-      // auto-close after a complete range is selected
-      const shouldAutoClose = picker !== 'date' || !showTime;
-
-      if (shouldAutoClose) {
-        // Small delay to show selection before closing
+      // Auto-close when both dates are selected (if not needing confirmation)
+      if (!showConfirmButton) {
         setTimeout(() => {
-          commitChange(normalizedRange);
+          commitChange(completedRange);
           handleOpenChange(false);
         }, 100);
       }
+      return;
+    }
+
+    // Case 3: Starting over - we have a complete range and user clicks a new date
+    if (hasCompleteRange && hasFromDate) {
+      setTempValue({ from: normalizedRange.from!, to: undefined });
+      setActiveRange('end');
+      const dateStrings = formatDateRange({ from: normalizedRange.from, to: undefined }, resolvedFormat);
+      onCalendarChange?.({ from: normalizedRange.from, to: undefined }, dateStrings, { range: 'start' });
+      return;
+    }
+
+    // Case 4: Replacing start date - user has partial range and clicks new start date
+    if (hasPartialTempRange && hasFromDate && !hasToDate) {
+      setTempValue({ from: normalizedRange.from!, to: undefined });
+      setActiveRange('end');
+      const dateStrings = formatDateRange({ from: normalizedRange.from, to: undefined }, resolvedFormat);
+      onCalendarChange?.({ from: normalizedRange.from, to: undefined }, dateStrings, { range: 'start' });
+      return;
+    }
+
+    // Case 5: User deselects (clicks same date again) - reset selection
+    if (!hasFromDate && !hasToDate) {
+      setTempValue(undefined);
+      setActiveRange('start');
+      return;
     }
   };
 
@@ -1206,9 +1252,15 @@ export function DateRangePicker({
             value={displayRange}
             onSelect={(range) => {
               setTempValue(range);
-              if (range.from && range.to && !showConfirmButton) {
-                commitChange(range);
-                handleOpenChange(false);
+              const dateStrings = formatDateRange(range, resolvedFormat);
+              if (range.from && !range.to) {
+                onCalendarChange?.(range, dateStrings, { range: 'start' });
+              } else if (range.from && range.to) {
+                onCalendarChange?.(range, dateStrings, { range: 'end' });
+                if (!showConfirmButton) {
+                  commitChange(range);
+                  handleOpenChange(false);
+                }
               }
             }}
             disabledDate={disabledDate}
@@ -1227,9 +1279,15 @@ export function DateRangePicker({
             value={displayRange}
             onSelect={(range) => {
               setTempValue(range);
-              if (range.from && range.to && !showConfirmButton) {
-                commitChange(range);
-                handleOpenChange(false);
+              const dateStrings = formatDateRange(range, resolvedFormat);
+              if (range.from && !range.to) {
+                onCalendarChange?.(range, dateStrings, { range: 'start' });
+              } else if (range.from && range.to) {
+                onCalendarChange?.(range, dateStrings, { range: 'end' });
+                if (!showConfirmButton) {
+                  commitChange(range);
+                  handleOpenChange(false);
+                }
               }
             }}
             disabledDate={disabledDate}
@@ -1248,9 +1306,15 @@ export function DateRangePicker({
             value={displayRange}
             onSelect={(range) => {
               setTempValue(range);
-              if (range.from && range.to && !showConfirmButton) {
-                commitChange(range);
-                handleOpenChange(false);
+              const dateStrings = formatDateRange(range, resolvedFormat);
+              if (range.from && !range.to) {
+                onCalendarChange?.(range, dateStrings, { range: 'start' });
+              } else if (range.from && range.to) {
+                onCalendarChange?.(range, dateStrings, { range: 'end' });
+                if (!showConfirmButton) {
+                  commitChange(range);
+                  handleOpenChange(false);
+                }
               }
             }}
             disabledDate={disabledDate}

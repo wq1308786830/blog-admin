@@ -11,7 +11,30 @@
       "Bash(dir:*)",
       "Bash(npm install:*)",
       "Bash(pnpm run build)",
-      "Bash(npm run build)"
+      "Bash(npm run build)",
+      "Bash(npm test:*)",
+      "mcp__web-reader__webReader",
+      "Bash(ls:*)",
+      "Bash(npx vitest run:*)",
+      "Bash(cd:*)",
+      "Bash(Out-String:*)",
+      "Bash(powershell:*)",
+      "Bash(tee:*)",
+      "Bash(cmd:*)",
+      "Bash(npx vitest:*)",
+      "Bash(timeout:*)",
+      "Bash(where vitest)",
+      "Bash(pnpm test:*)",
+      "Bash(node run-test.js)",
+      "Bash(npm run test)",
+      "Bash(npm run test:*)",
+      "Bash(find:*)",
+      "Bash(pnpm install:*)",
+      "Bash(grep:*)"
     ]
-  }
+  },
+  "enableAllProjectMcpServers": true,
+  "enabledMcpjsonServers": [
+    "shadcn"
+  ]
 }

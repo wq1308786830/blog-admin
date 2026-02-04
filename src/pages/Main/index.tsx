@@ -1,13 +1,9 @@
 import { useState } from 'react';
 import { Link, Outlet, useLocation } from 'react-router-dom';
-import {
-  Home,
-  FileText,
-  FolderKanban,
-  Menu,
-  X,
-} from 'lucide-react';
+import { Home, FileText, FolderKanban, Menu, X, LogOut } from 'lucide-react';
 import { cn } from '@/lib/utils';
+import { useUser, useLogout } from '@/hooks/useAuth';
+import { Button } from '@/components/ui/button';
 
 const menuItems = [
   {
@@ -34,9 +30,15 @@ function Index() {
   const [collapsed, setCollapsed] = useState(false);
   const location = useLocation();
   const currentPath = location.pathname.split('/').pop() || 'articleListManage';
+  const { user } = useUser();
+  const logout = useLogout();
 
   const toggle = () => {
     setCollapsed((prev) => !prev);
+  };
+
+  const handleLogout = () => {
+    logout.mutate();
   };
 
   return (
@@ -77,18 +79,27 @@ function Index() {
       {/* Main Content */}
       <div className="flex-1 flex flex-col">
         {/* Header */}
-        <header className="border-b border-border h-16 flex items-center px-4">
+        <header className="border-b border-border h-16 flex items-center justify-between px-4">
           <button
             onClick={toggle}
             className="p-2 rounded-md hover:bg-accent hover:text-accent-foreground transition-colors"
             aria-label={collapsed ? 'Expand menu' : 'Collapse menu'}
           >
-            {collapsed ? (
-              <Menu className="h-5 w-5" />
-            ) : (
-              <X className="h-5 w-5" />
-            )}
+            {collapsed ? <Menu className="h-5 w-5" /> : <X className="h-5 w-5" />}
           </button>
+          <div className="flex items-center gap-4">
+            <span className="text-sm text-muted-foreground">{user?.user_name || 'User'}</span>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={handleLogout}
+              disabled={logout.isPending}
+              className="flex items-center gap-2"
+            >
+              <LogOut className="h-4 w-4" />
+              {logout.isPending ? '退出中...' : '退出'}
+            </Button>
+          </div>
         </header>
 
         {/* Content Area */}

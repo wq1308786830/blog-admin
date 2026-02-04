@@ -39,7 +39,20 @@ export function parseObj2SearchParams(obj: Record<string, unknown> | null) {
   let searchParams = '';
   if (obj !== null && obj !== undefined) {
     searchParams = Object.keys(obj)
-      .map((key) => `${encodeURIComponent(key)}=${encodeURIComponent(String(obj[key]))}`)
+      .flatMap((key) => {
+        const value = obj[key];
+        // Handle arrays: create multiple key=value pairs
+        if (Array.isArray(value)) {
+          return value
+            .filter((v) => v !== null && v !== undefined && v !== '')
+            .map((v) => `${encodeURIComponent(key)}=${encodeURIComponent(String(v))}`);
+        }
+        // Skip null/undefined/empty string values
+        if (value === null || value === undefined || value === '') {
+          return [];
+        }
+        return `${encodeURIComponent(key)}=${encodeURIComponent(String(value))}`;
+      })
       .join('&');
   }
 

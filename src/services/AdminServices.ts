@@ -3,7 +3,7 @@ import { GET, POST, PUT } from '@/utils/request';
 import { ApiResponse, Article, ArticleFilters, CreateArticleDto, User } from '@/types';
 
 interface LoginFormData {
-  username: string;
+  user_name: string;
   password: string;
 }
 

@@ -1,21 +1,14 @@
 import { useForm } from 'react-hook-form';
 import { zodResolver } from '@hookform/resolvers/zod';
 import * as z from 'zod';
-import { Lock, User } from 'lucide-react';
-import Recaptcha from 'react-recaptcha';
-import AdminServices from '@/services/AdminServices';
-import { showError, showSuccess } from '@/lib/toast';
+import { Lock, User, Eye, EyeOff } from 'lucide-react';
+import { Loader2 } from 'lucide-react';
+import { useState } from 'react';
+import { useLogin } from '@/hooks/useAuth';
 import { Button } from '@/components/ui/button';
 import { Checkbox } from '@/components/ui/checkbox';
-import {
-  Form,
-  FormControl,
-  FormField,
-  FormItem,
-  FormMessage,
-} from '@/components/ui/form';
+import { Form, FormControl, FormField, FormItem, FormMessage } from '@/components/ui/form';
 import { Input } from '@/components/ui/input';
-import history from 'history/browser';
 
 const loginSchema = z.object({
   user_name: z.string().min(1, { message: '请输入用户名!' }),
@@ -26,6 +19,9 @@ const loginSchema = z.object({
 type LoginFormValues = z.infer<typeof loginSchema>;
 
 function NormalLoginForm() {
+  const login = useLogin();
+  const [showPassword, setShowPassword] = useState(false);
+
   const form = useForm<LoginFormValues>({
     resolver: zodResolver(loginSchema),
     defaultValues: {
@@ -36,35 +32,17 @@ function NormalLoginForm() {
   });
 
   const handleSubmit = async (values: LoginFormValues) => {
-    try {
-      const resp = await AdminServices.login({
-        username: values.user_name,
-        password: values.password,
-      });
-      if (resp.success) {
-        localStorage.setItem('user', '1');
-        showSuccess('登录成功');
-        history.push('/admin');
-      } else {
-        showError(`错误：${resp.msg}`);
-      }
-    } catch (error: unknown) {
-      if (error instanceof Error) {
-        showError(`错误：${error.message}`);
-      } else {
-        showError('未知错误');
-      }
-    }
+    login.mutate({
+      user_name: values.user_name,
+      password: values.password,
+      remember: values.remember,
+    });
   };
 
-  const onloadCallback = () => {
-    // eslint-disable-next-line no-console
-    console.log('Done!!!');
-  };
-
-  const verifyCallback = (resp: string) => {
-    // eslint-disable-next-line no-console
-    console.log(resp);
+  const handleForgotPassword = () => {
+    // 这里可以添加实际的忘记密码功能
+    // 目前显示一个提示消息
+    alert('请联系管理员重置密码');
   };
 
   return (
@@ -82,6 +60,7 @@ function NormalLoginForm() {
                     placeholder="用户名"
                     className="pl-9"
                     {...field}
+                    disabled={login.isPending}
                   />
                 </div>
               </FormControl>
@@ -102,6 +81,7 @@ function NormalLoginForm() {
                     placeholder="密码"
                     className="pl-9"
                     {...field}
+                    disabled={login.isPending}
                   />
                 </div>
               </FormControl>
@@ -118,6 +98,7 @@ function NormalLoginForm() {
                 <Checkbox
                   checked={field.value}
                   onCheckedChange={field.onChange}
+                  disabled={login.isPending}
                 />
               </FormControl>
               <div className="text-sm font-medium leading-none peer-disabled:cursor-not-allowed peer-disabled:opacity-70">
@@ -131,17 +112,10 @@ function NormalLoginForm() {
             忘记密码？
           </Button>
         </div>
-        <Button type="submit" className="w-full">
-          登录
+        <Button type="submit" className="w-full" disabled={login.isPending}>
+          {login.isPending && <Loader2 className="mr-2 h-4 w-4 animate-spin" />}
+          {login.isPending ? '登录中...' : '登录'}
         </Button>
-        <Recaptcha
-          sitekey="6LfEhDwUAAAAAPEPGFpooDYCHBczNAUu90medQoD"
-          render="explicit"
-          verifyCallback={verifyCallback}
-          onloadCallback={onloadCallback}
-          type="image"
-          hl="zh-CN"
-        />
       </form>
     </Form>
   );

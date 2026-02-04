@@ -3,7 +3,7 @@
  */
 export interface User extends Record<string, unknown> {
   id: number;
-  username: string;
+  user_name: string;
   email?: string;
   role?: string;
   token?: string;
