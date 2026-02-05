@@ -314,12 +314,15 @@ describe('useArticleEdit - Publish Article', () => {
     expect(result.current.isPublishing).toBe(false);
 
     // Start the mutation
-    act(() => {
+    await act(async () => {
       result.current.publishArticle({ id: 1 });
     });
 
     // isPublishing should be true after act completes
-    expect(result.current.isPublishing).toBe(true);
+    // Note: React Query updates state asynchronously, so we need to wait
+    await waitFor(() => {
+      expect(result.current.isPublishing).toBe(true);
+    });
 
     // Wait for mutation to complete
     await waitFor(() => {
@@ -359,7 +362,7 @@ describe('useArticleEdit - Additional Data', () => {
     });
 
     const publishedData = vi.mocked(AdminServices.publishArticle).mock
-      .calls[0][0][0] as CreateArticleDto;
+      .calls[0][0] as CreateArticleDto;
     expect(publishedData.id).toBe(123);
   });
 
@@ -389,7 +392,7 @@ describe('useArticleEdit - Additional Data', () => {
     });
 
     const publishedData = vi.mocked(AdminServices.publishArticle).mock
-      .calls[0][0][0] as CreateArticleDto;
+      .calls[0][0] as CreateArticleDto;
     expect(publishedData.id).toBeUndefined();
   });
 });

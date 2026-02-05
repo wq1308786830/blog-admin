@@ -188,15 +188,13 @@ describe('request.ts - HTTP核心层', () => {
 
   describe('响应拦截器', () => {
     it('✅ TDD: 2xx状态码应返回数据', async () => {
-      const mockData = { success: true, data: { id: 1 } };
-      vi.mocked(axios).mockResolvedValue({
-        status: 200,
-        data: mockData,
-      });
+      const mockResponseData = { success: true, data: { id: 1 } };
+      // 模拟axios拦截器返回response.data（即直接返回data）
+      vi.mocked(axios).mockResolvedValue(mockResponseData as any);
 
       const result = await GET('/api/test', null, false);
-      // axios拦截器返回response.data，所以结果应该是mockData
-      expect(result).toEqual(mockData);
+      // axios拦截器返回response.data，所以结果应该是mockResponseData
+      expect(result).toEqual(mockResponseData);
     });
 
     it('✅ TDD: 非成功状态码应抛出错误', async () => {

@@ -30,7 +30,8 @@
       "Bash(npm run test:*)",
       "Bash(find:*)",
       "Bash(pnpm install:*)",
-      "Bash(grep:*)"
+      "Bash(grep:*)",
+      "Bash(npm run test:coverage:*)"
     ]
   },
   "enableAllProjectMcpServers": true,

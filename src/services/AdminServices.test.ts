@@ -31,7 +31,7 @@ describe('AdminServices - 管理员API服务', () => {
         password: '123456',
       });
 
-      expect(request.POST).toHaveBeenCalledWith('/admin/login', expect.any(Object), false);
+      expect(request.POST).toHaveBeenCalledWith('/admin/login', expect.any(Object));
       expect(result.data).toEqual({ id: 1, user_name: 'admin' });
     });
 
@@ -48,10 +48,10 @@ describe('AdminServices - 管理员API服务', () => {
 
       expect(request.POST).toHaveBeenCalledWith(
         '/admin/login',
-        expect.objectContaining({
+        {
+          user_name: 'admin',
           password: 'hashed_mypassword',
-        }),
-        false
+        }
       );
     });
 
@@ -68,10 +68,10 @@ describe('AdminServices - 管理员API服务', () => {
 
       expect(request.POST).toHaveBeenCalledWith(
         '/admin/login',
-        expect.objectContaining({
+        {
           user_name: 'testuser',
-        }),
-        false
+          password: 'hashed_testpass',
+        }
       );
     });
 
@@ -101,7 +101,7 @@ describe('AdminServices - 管理员API服务', () => {
 
       await AdminServices.getArticles({ categoryId: '1', dateRange: [], text: 'search' }, 1);
 
-      expect(request.GET).toHaveBeenCalledWith('/admin/getArticles', expect.any(Object), false);
+      expect(request.GET).toHaveBeenCalledWith('/admin/getArticles', expect.any(Object));
     });
 
     it('✅ TDD: 获取文章列表应传递filters和pageIndex', async () => {
@@ -115,13 +115,12 @@ describe('AdminServices - 管理员API服务', () => {
 
       expect(request.GET).toHaveBeenCalledWith(
         '/admin/getArticles',
-        expect.objectContaining({
+        {
           categoryId: '1',
           dateRange: [],
           text: 'search',
           pageIndex: 2,
-        }),
-        false
+        }
       );
     });
 
@@ -153,8 +152,9 @@ describe('AdminServices - 管理员API服务', () => {
 
       expect(request.GET).toHaveBeenCalledWith(
         '/admin/getArticles',
-        expect.objectContaining({ pageIndex: 1 }),
-        false
+        {
+          pageIndex: 1,
+        }
       );
     });
 
@@ -169,8 +169,9 @@ describe('AdminServices - 管理员API服务', () => {
 
       expect(request.GET).toHaveBeenCalledWith(
         '/admin/getArticles',
-        expect.objectContaining({ pageIndex: 5 }),
-        false
+        {
+          pageIndex: 5,
+        }
       );
     });
   });
@@ -191,7 +192,7 @@ describe('AdminServices - 管理员API服务', () => {
 
       await AdminServices.publishArticle(articleDto);
 
-      expect(request.POST).toHaveBeenCalledWith('/admin/publishArticle', articleDto, false);
+      expect(request.POST).toHaveBeenCalledWith('/admin/publishArticle', articleDto);
     });
 
     it('✅ TDD: 发布文章应传递完整的文章数据', async () => {
@@ -211,12 +212,12 @@ describe('AdminServices - 管理员API服务', () => {
 
       expect(request.POST).toHaveBeenCalledWith(
         '/admin/publishArticle',
-        expect.objectContaining({
+        {
           title: 'New Article',
           content: 'Content here',
           categoryId: 2,
-        }),
-        false
+          textType: 'html',
+        }
       );
     });
 
@@ -272,7 +273,7 @@ describe('AdminServices - 管理员API服务', () => {
 
       await AdminServices.deleteArticle(123);
 
-      expect(request.GET).toHaveBeenCalledWith('/admin/deleteArticle', { id: 123 }, false);
+      expect(request.GET).toHaveBeenCalledWith('/admin/deleteArticle', { id: 123 });
     });
 
     it('✅ TDD: 删除文章应正确传递不同的ID', async () => {
@@ -282,7 +283,7 @@ describe('AdminServices - 管理员API服务', () => {
 
       await AdminServices.deleteArticle(456);
 
-      expect(request.GET).toHaveBeenCalledWith('/admin/deleteArticle', { id: 456 }, false);
+      expect(request.GET).toHaveBeenCalledWith('/admin/deleteArticle', { id: 456 });
     });
 
     it('✅ TDD: 删除文章成功应返回成功响应', async () => {
@@ -319,8 +320,7 @@ describe('AdminServices - 管理员API服务', () => {
 
       expect(request.PUT).toHaveBeenCalledWith(
         '/admin/addCategory',
-        { fatherId: 1, level: 2, categoryName: 'Tech' },
-        false
+        { fatherId: 1, level: 2, categoryName: 'Tech' }
       );
     });
 
@@ -334,12 +334,11 @@ describe('AdminServices - 管理员API服务', () => {
 
       expect(request.PUT).toHaveBeenCalledWith(
         '/admin/addCategory',
-        expect.objectContaining({
+        {
           fatherId: 5,
           level: 3,
           categoryName: 'Programming',
-        }),
-        false
+        }
       );
     });
 
@@ -353,12 +352,11 @@ describe('AdminServices - 管理员API服务', () => {
 
       expect(request.PUT).toHaveBeenCalledWith(
         '/admin/addCategory',
-        expect.objectContaining({
+        {
           fatherId: null,
           level: 1,
           categoryName: 'Technology',
-        }),
-        false
+        }
       );
     });
 
@@ -372,10 +370,11 @@ describe('AdminServices - 管理员API服务', () => {
 
       expect(request.PUT).toHaveBeenCalledWith(
         '/admin/addCategory',
-        expect.objectContaining({
+        {
+          fatherId: 1,
           level: 2,
-        }),
-        false
+          categoryName: 'Frontend',
+        }
       );
     });
 

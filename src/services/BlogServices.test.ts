@@ -23,7 +23,7 @@ describe('BlogServices - 博客API服务', () => {
 
       await BlogServices.getCategories(1);
 
-      expect(request.GET).toHaveBeenCalledWith('/category/getCategories', { fatherId: 1 }, false);
+      expect(request.GET).toHaveBeenCalledWith('/category/getCategories', { fatherId: 1 });
     });
 
     it('✅ TDD: 获取子分类应传递fatherId参数', async () => {
@@ -36,7 +36,7 @@ describe('BlogServices - 博客API服务', () => {
 
       await BlogServices.getCategories(1);
 
-      expect(request.GET).toHaveBeenCalledWith('/category/getCategories', { fatherId: 1 }, false);
+      expect(request.GET).toHaveBeenCalledWith('/category/getCategories', { fatherId: 1 });
     });
 
     it('✅ TDD: 获取顶级分类时fatherId应为null', async () => {
@@ -49,7 +49,7 @@ describe('BlogServices - 博客API服务', () => {
 
       await BlogServices.getCategories(null);
 
-      expect(request.GET).toHaveBeenCalledWith('/category/getCategories', { fatherId: null }, false);
+      expect(request.GET).toHaveBeenCalledWith('/category/getCategories', { fatherId: null });
     });
 
     it('✅ TDD: 获取分类应返回分类数组', async () => {
@@ -90,7 +90,7 @@ describe('BlogServices - 博客API服务', () => {
 
       await BlogServices.getCategories(0);
 
-      expect(request.GET).toHaveBeenCalledWith('/category/getCategories', { fatherId: 0 }, false);
+      expect(request.GET).toHaveBeenCalledWith('/category/getCategories', { fatherId: 0 });
     });
   });
 
@@ -165,7 +165,7 @@ describe('BlogServices - 博客API服务', () => {
 
       await BlogServices.getArticleList('tech');
 
-      expect(request.GET).toHaveBeenCalledWith('/article/getArticleList', { key: 'tech' }, false);
+      expect(request.GET).toHaveBeenCalledWith('/article/getArticleList', { key: 'tech' });
     });
 
     it('✅ TDD: 获取文章列表应传递搜索关键字', async () => {
@@ -176,7 +176,7 @@ describe('BlogServices - 博客API服务', () => {
 
       await BlogServices.getArticleList('react');
 
-      expect(request.GET).toHaveBeenCalledWith('/article/getArticleList', { key: 'react' }, false);
+      expect(request.GET).toHaveBeenCalledWith('/article/getArticleList', { key: 'react' });
     });
 
     it('✅ TDD: 获取文章列表应支持空关键字', async () => {
@@ -187,7 +187,7 @@ describe('BlogServices - 博客API服务', () => {
 
       await BlogServices.getArticleList('');
 
-      expect(request.GET).toHaveBeenCalledWith('/article/getArticleList', { key: '' }, false);
+      expect(request.GET).toHaveBeenCalledWith('/article/getArticleList', { key: '' });
     });
 
     it('✅ TDD: 获取文章列表应返回文章数组', async () => {
@@ -230,7 +230,7 @@ describe('BlogServices - 博客API服务', () => {
 
       await BlogServices.getArticleDetail(123);
 
-      expect(request.GET).toHaveBeenCalledWith('/article/getArticleDetail', { articleId: 123 }, false);
+      expect(request.GET).toHaveBeenCalledWith('/article/getArticleDetail', { articleId: 123 });
     });
 
     it('✅ TDD: 获取文章详情应传递文章ID', async () => {
@@ -241,7 +241,7 @@ describe('BlogServices - 博客API服务', () => {
 
       await BlogServices.getArticleDetail(456);
 
-      expect(request.GET).toHaveBeenCalledWith('/article/getArticleDetail', { articleId: 456 }, false);
+      expect(request.GET).toHaveBeenCalledWith('/article/getArticleDetail', { articleId: 456 });
     });
 
     it('✅ TDD: 获取文章详情应返回完整文章数据', async () => {
@@ -285,7 +285,7 @@ describe('BlogServices - 博客API服务', () => {
 
       await BlogServices.getArticleDetail(1);
 
-      expect(request.GET).toHaveBeenCalledWith('/article/getArticleDetail', { articleId: 1 }, false);
+      expect(request.GET).toHaveBeenCalledWith('/article/getArticleDetail', { articleId: 1 });
     });
   });
 
@@ -298,7 +298,7 @@ describe('BlogServices - 博客API服务', () => {
 
       await BlogServices.getArticleRecommendLinks(123);
 
-      expect(request.GET).toHaveBeenCalledWith('/article/getArticleRecommendLinks', { articleId: 123 }, false);
+      expect(request.GET).toHaveBeenCalledWith('/article/getArticleRecommendLinks', { articleId: 123 });
     });
 
     it('✅ TDD: 获取推荐文章应传递文章ID', async () => {
@@ -309,7 +309,7 @@ describe('BlogServices - 博客API服务', () => {
 
       await BlogServices.getArticleRecommendLinks(5);
 
-      expect(request.GET).toHaveBeenCalledWith('/article/getArticleRecommendLinks', { articleId: 5 }, false);
+      expect(request.GET).toHaveBeenCalledWith('/article/getArticleRecommendLinks', { articleId: 5 });
     });
 
     it('✅ TDD: 获取推荐文章应返回推荐文章列表', async () => {
