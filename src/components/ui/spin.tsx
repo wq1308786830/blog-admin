@@ -154,7 +154,7 @@ const Spin = React.forwardRef<HTMLDivElement, SpinProps>(
 
     // Render wrapped content
     return (
-      <div ref={ref} className={cn('relative', wrapperClassName)} style={wrapperStyle}>
+      <div ref={ref} className={cn('relative', wrapperClassName)}>
         {showLoading && (
           <div
             className={cn(
@@ -168,7 +168,7 @@ const Spin = React.forwardRef<HTMLDivElement, SpinProps>(
             {tip && <p className="text-sm text-muted-foreground">{tip}</p>}
           </div>
         )}
-        <div className={cn('transition-opacity', showLoading && 'opacity-30 pointer-events-none')}>
+        <div className={cn('transition-opacity', showLoading && 'opacity-30 pointer-events-none')} style={wrapperStyle}>
           {children}
         </div>
       </div>

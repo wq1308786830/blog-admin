@@ -137,8 +137,10 @@ describe('Spin Component', () => {
           <div>Content</div>
         </Spin>
       );
-      const wrapper = screen.getByText('Content').parentElement?.parentElement;
-      expect(wrapper).toHaveStyle({ backgroundColor: 'red' });
+      const wrapper = screen.getByText('Content').parentElement;
+      // wrapper 现在是直接包装内容的 div，应用了 wrapperStyle
+      // 使用 RGB 格式，因为浏览器会将颜色转换为 RGB
+      expect(wrapper).toHaveStyle({ backgroundColor: 'rgb(255, 0, 0)' });
     });
   });
 

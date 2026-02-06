@@ -284,8 +284,12 @@ const getSemanticClassNames = (
     input: cn(
       'inline-flex items-center border rounded-md relative group cursor-pointer transition-colors px-3',
       getSizeClasses(props.size || 'middle'),
-      props.bordered ? '' : getVariantClasses(props.variant || 'outlined', props.status),
-      props.className
+      // 修复：bordered 为 false 时应用透明边框，否则应用 variant 类
+      props.bordered !== false
+        ? getVariantClasses(props.variant || 'outlined', props.status)
+        : 'border-transparent shadow-none',
+      props.className,
+      classNamesValue.input  // 添加自定义 classNames.input
     ),
     popup: cn('w-auto p-0', active && classNamesValue.popup, props.popupClassName),
     panel: classNamesValue.panel,
@@ -1531,7 +1535,13 @@ export function DateRangePicker({
                         variant="link"
                         size="sm"
                         className="text-primary h-auto p-0"
-                        onClick={handleNowClick}
+                        onClick={() => {
+                          handleNowClick();
+                          if (!showConfirmButton) {
+                            // 如果没有确认按钮，直接提交更改
+                            commitChange(tempValue || selectedRange);
+                          }
+                        }}
                       >
                         Now
                       </Button>
