@@ -83,12 +83,13 @@ function Index() {
 
   const onClickPublish = () => {
     const categoryIdValue = category.length > 0 ? Number(category[category.length - 1]) : 0;
-    updateState({ categoryId: categoryIdValue });
 
-    const additionalData: { id?: number } = {};
+    const additionalData: { id?: number; categoryId?: number } = {};
     if (numArticleId && numArticleId !== 0) {
       additionalData.id = numArticleId;
     }
+    // Pass categoryId directly to avoid async state update timing issues
+    additionalData.categoryId = categoryIdValue;
 
     publishArticle(additionalData);
 

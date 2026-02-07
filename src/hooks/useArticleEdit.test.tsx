@@ -395,4 +395,67 @@ describe('useArticleEdit - Additional Data', () => {
       .calls[0][0] as CreateArticleDto;
     expect(publishedData.id).toBeUndefined();
   });
+
+  test('❌ TDD: BUG - should use categoryId from additionalData parameter when provided', async () => {
+    vi.mocked(AdminServices.publishArticle).mockResolvedValue({
+      success: true,
+      data: mockArticle,
+    } as any);
+
+    const { result } = renderWithProviders(() => useArticleEdit(undefined));
+
+    // Set state with categoryId: 0 (simulating initial state)
+    // and updateState is called with categoryId: 10 (async update)
+    act(() => {
+      result.current.updateState({
+        title: 'Test',
+        categoryId: 0, // Initial state
+        markdownContent: 'Content',
+      });
+    });
+
+    // Simulate the bug: updateState was called but state hasn't updated yet
+    // publishArticle is called without categoryId in additionalData
+    await act(async () => {
+      await result.current.publishArticle({ id: 1 }); // No categoryId in additionalData!
+    });
+
+    const publishedData = vi.mocked(AdminServices.publishArticle).mock
+      .calls[0][0] as CreateArticleDto;
+
+    // BUG: Currently this passes because categoryId is 0 from state
+    // After fix, we should be able to pass categoryId via additionalData
+    expect(publishedData.categoryId).toBe(0); // Currently passes (bug)
+  });
+
+  test('🔴 TDD: RED - should allow overriding categoryId via additionalData parameter', async () => {
+    vi.mocked(AdminServices.publishArticle).mockResolvedValue({
+      success: true,
+      data: mockArticle,
+    } as any);
+
+    const { result } = renderWithProviders(() => useArticleEdit(undefined));
+
+    // Set state with categoryId: 0
+    act(() => {
+      result.current.updateState({
+        title: 'Test',
+        categoryId: 0, // State has old value
+        markdownContent: 'Content',
+      });
+    });
+
+    // Publish with explicit categoryId in additionalData (leaf category: 10)
+    // This simulates the fix: passing categoryId directly to avoid async state issues
+    await act(async () => {
+      await result.current.publishArticle({ id: 1, categoryId: 10 });
+    });
+
+    const publishedData = vi.mocked(AdminServices.publishArticle).mock
+      .calls[0][0] as CreateArticleDto;
+
+    // Should use categoryId from additionalData parameter
+    expect(publishedData.categoryId).toBe(10);
+    expect(publishedData.categoryId).not.toBe(0);
+  });
 });

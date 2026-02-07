@@ -87,3 +87,72 @@ TypeScript types defined in `src/types/`:
 
 ## API Proxy
 All API requests proxy through `https://blog-proxy-nine.vercel.app` regardless of environment (dev/prod/test).
+
+## TDD Development Rules
+
+### 自动更新规则 📝
+**⚠️ 强制要求**: 每次完成 TDD 开发后，必须自动更新 `TDD_PROGRESS_REPORT.md` 文件
+
+#### 触发条件
+完成以下任一 TDD 任务后，必须更新进度报告：
+- ✅ 修复 Bug（遵循 RED → GREEN → REFACTOR 流程）
+- ✅ 实现新功能（先写测试，再写实现）
+- ✅ 重构代码（测试保护下的重构）
+- ✅ 修复失败测试
+
+#### 更新内容模板
+```markdown
+# 🎉 第N次更新：[任务标题] (YYYY-MM-DD)
+
+**阶段**: [当前阶段] - [完成度]
+**测试通过率**: [测试数]/[总数] ([百分比]%)
+
+## 本次修复/新增内容
+
+### 问题描述
+- [问题类型]: Bug/新功能/重构
+- [影响范围]: [相关模块]
+
+### 解决方案
+- ✅ [解决方案1]
+- ✅ [解决方案2]
+
+### 测试结果
+```
+✓ [测试文件路径] ([测试数] passed)
+✓ All tests ([总数] passed)
+```
+
+### 修改清单
+1. `[文件路径1]` - [修改说明]
+2. `[文件路径2]` - [修改说明]
+
+### TDD 流程遵循
+- 🔴 RED: [描述测试失败阶段]
+- 🟢 GREEN: [描述修复阶段]
+- ✅ 验证: [描述验证阶段]
+
+---
+
+*将此内容插入到 TDD_PROGRESS_REPORT.md 的最前面，作为第N次更新*
+```
+
+#### 更新位置
+将新内容添加到 `TDD_PROGRESS_REPORT.md` 文件的**最顶部**，作为最新的更新记录
+
+#### 更新格式
+- 使用清晰的标题和章节结构
+- 包含测试结果统计
+- 列出修改的文件清单
+- 标注 TDD 流程遵循情况
+- 使用表情符号增强可读性
+
+#### 验证要求
+更新完成后，必须验证：
+- ✅ 测试套件全部通过
+- ✅ 无 TypeScript 类型错误
+- ✅ 报告格式符合模板
+- ✅ 数据准确无误
+
+#### 示例参考
+参考 `TDD_PROGRESS_REPORT.md` 中的历史更新记录

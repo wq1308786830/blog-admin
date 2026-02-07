@@ -48,7 +48,7 @@ beforeEach(() => {
 
 describe('useArticleList - Infinite Query', () => {
   test('✅ TDD: should fetch articles on mount', async () => {
-    const filters: ArticleFilters = { categoryId: '', dateRange: [], text: '' };
+    const filters: ArticleFilters = { categoryId: '', text: '' };
 
     vi.mocked(AdminServices.getArticles).mockResolvedValue({
       success: true,
@@ -65,7 +65,7 @@ describe('useArticleList - Infinite Query', () => {
   });
 
   test('✅ TDD: should handle API error', async () => {
-    const filters: ArticleFilters = { categoryId: '', dateRange: [], text: '' };
+    const filters: ArticleFilters = { categoryId: '', text: '' };
 
     vi.mocked(AdminServices.getArticles).mockResolvedValue({
       success: false,
@@ -80,7 +80,7 @@ describe('useArticleList - Infinite Query', () => {
   });
 
   test('✅ TDD: should call fetchNextPage for pagination', async () => {
-    const filters: ArticleFilters = { categoryId: '', dateRange: [], text: '' };
+    const filters: ArticleFilters = { categoryId: '', text: '' };
 
     vi.mocked(AdminServices.getArticles).mockResolvedValue({
       success: true,
@@ -101,7 +101,7 @@ describe('useArticleList - Infinite Query', () => {
   });
 
   test('✅ TDD: should determine hasNextPage correctly', async () => {
-    const filters: ArticleFilters = { categoryId: '', dateRange: [], text: '' };
+    const filters: ArticleFilters = { categoryId: '', text: '' };
 
     vi.mocked(AdminServices.getArticles).mockResolvedValue({
       success: true,

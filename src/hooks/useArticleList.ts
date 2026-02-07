@@ -88,7 +88,7 @@ export function useArticle(articleId: number | undefined) {
       if (!articleId) {
         throw new Error('Article ID is required');
       }
-      const resp = await AdminServices.getArticles({ categoryId: '', dateRange: [], text: '' }, 0);
+      const resp = await AdminServices.getArticles({ categoryId: '', text: '' }, 0);
       if (!resp.success) {
         throw new Error(resp.msg || 'Failed to fetch article');
       }
@@ -112,7 +112,7 @@ export function usePrefetchArticle() {
       queryKey: queryKeys.articles.detail(articleId),
       queryFn: async (): Promise<Article> => {
         const resp = await AdminServices.getArticles(
-          { categoryId: '', dateRange: [], text: '' },
+          { categoryId: '', text: '' },
           0
         );
         if (!resp.success) {

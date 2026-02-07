@@ -36,10 +36,10 @@ function Index() {
   const filters: ArticleFilters = {
     categoryId:
       selectedCategory.length > 0 ? String(selectedCategory[selectedCategory.length - 1]) : '',
-    dateRange:
-      dateRange && dateRange.from && dateRange.to
-        ? [Math.floor(dateRange.from.getTime() / 1000), Math.floor(dateRange.to.getTime() / 1000)]
-        : [],
+    ...(dateRange && dateRange.from && dateRange.to && {
+      dateStart: Math.floor(dateRange.from.getTime() / 1000),
+      dateEnd: Math.floor(dateRange.to.getTime() / 1000),
+    }),
     text: searchText,
   };
 

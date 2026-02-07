@@ -20,7 +20,8 @@ export interface Article {
  */
 export interface ArticleFilters {
   categoryId: string;
-  dateRange: [number, number] | [];
+  dateStart?: number; // 可选的开始时间戳
+  dateEnd?: number; // 可选的结束时间戳
   text: string;
 }
 

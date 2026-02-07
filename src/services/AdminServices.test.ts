@@ -1,6 +1,7 @@
 import { describe, it, expect, vi, beforeEach, afterEach } from 'vitest';
 import AdminServices from './AdminServices';
 import * as request from '@/utils/request';
+import type { ArticleFilters } from '@/types';
 
 // Mock request模块
 vi.mock('@/utils/request');
@@ -99,7 +100,7 @@ describe('AdminServices - 管理员API服务', () => {
         data: [],
       });
 
-      await AdminServices.getArticles({ categoryId: '1', dateRange: [], text: 'search' }, 1);
+      await AdminServices.getArticles({ categoryId: '1', text: 'search' }, 1);
 
       expect(request.GET).toHaveBeenCalledWith('/admin/getArticles', expect.any(Object));
     });
@@ -110,14 +111,13 @@ describe('AdminServices - 管理员API服务', () => {
         data: [],
       });
 
-      const filters = { categoryId: '1', dateRange: [] as [], text: 'search' };
+      const filters = { categoryId: '1', text: 'search' };
       await AdminServices.getArticles(filters, 2);
 
       expect(request.GET).toHaveBeenCalledWith(
         '/admin/getArticles',
         {
           categoryId: '1',
-          dateRange: [],
           text: 'search',
           pageIndex: 2,
         }
@@ -147,8 +147,8 @@ describe('AdminServices - 管理员API服务', () => {
         data: [],
       });
 
-      const filters: any = {};
-      await AdminServices.getArticles(filters, 1);
+      const filters: Partial<ArticleFilters> = {};
+      await AdminServices.getArticles(filters as ArticleFilters, 1);
 
       expect(request.GET).toHaveBeenCalledWith(
         '/admin/getArticles',
@@ -173,6 +173,72 @@ describe('AdminServices - 管理员API服务', () => {
           pageIndex: 5,
         }
       );
+    });
+
+    // ❌ TDD: 新增测试 1 - 验证有日期范围时传递 dateStart 和 dateEnd
+    it('❌ TDD: 获取文章列表时应将dateRange数组转换为dateStart和dateEnd参数', async () => {
+      vi.mocked(request.GET).mockResolvedValue({
+        success: true,
+        data: [],
+      });
+
+      const filters = {
+        categoryId: '1',
+        dateStart: 1672531200, // 2023-01-01
+        dateEnd: 1675209600, // 2023-01-31
+        text: 'search',
+      };
+
+      await AdminServices.getArticles(filters, 1);
+
+      expect(request.GET).toHaveBeenCalledWith('/admin/getArticles', {
+        categoryId: '1',
+        dateStart: 1672531200,
+        dateEnd: 1675209600,
+        text: 'search',
+        pageIndex: 1,
+      });
+    });
+
+    // ❌ TDD: 新增测试 2 - 验证无日期范围时不传递日期参数
+    it('❌ TDD: 获取文章列表时没有日期范围不应传递dateStart和dateEnd', async () => {
+      vi.mocked(request.GET).mockResolvedValue({
+        success: true,
+        data: [],
+      });
+
+      const filters = { categoryId: '1', text: 'search' };
+
+      await AdminServices.getArticles(filters, 1);
+
+      expect(request.GET).toHaveBeenCalledWith('/admin/getArticles', {
+        categoryId: '1',
+        text: 'search',
+        pageIndex: 1,
+      });
+    });
+
+    // ❌ TDD: 新增测试 3 - 验证只有开始时间的边界情况
+    it('❌ TDD: 获取文章列表时应正确处理只有开始时间的情况', async () => {
+      vi.mocked(request.GET).mockResolvedValue({
+        success: true,
+        data: [],
+      });
+
+      const filters = {
+        categoryId: '1',
+        dateStart: 1672531200,
+        text: 'search',
+      };
+
+      await AdminServices.getArticles(filters, 1);
+
+      expect(request.GET).toHaveBeenCalledWith('/admin/getArticles', {
+        categoryId: '1',
+        dateStart: 1672531200,
+        text: 'search',
+        pageIndex: 1,
+      });
     });
   });
 

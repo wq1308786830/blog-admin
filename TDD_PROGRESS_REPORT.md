@@ -1,5 +1,183 @@
 # TDD测试完善进度报告
 
+---
+
+# 🎉 第6次更新：publishArticle 接口 categoryId 传递修复 (2026-02-07)
+
+**阶段**: Bug修复 - 100%完成 ✅
+**测试通过率**: **847/847 (100%)** 🏆
+
+## 本次修复内容
+
+### 问题描述
+- **问题类型**: React 异步状态更新导致的时序问题
+- **影响范围**: `src/pages/ArticleEdit/index.tsx` 发布文章功能
+- **根本原因**:
+  - `onClickPublish` 函数中,`categoryIdValue` 被计算但从未传递给 `publishArticle`
+  - `updateState({ categoryId: categoryIdValue })` 是异步更新,状态还未完成时 `publishArticle` 就被调用
+  - 导致发布文章时 `categoryId` 总是传递为 0,而不是用户选中的叶子节点分类 ID
+
+### 解决方案
+- ✅ **修改 `publishArticle` 函数签名** (`src/hooks/useArticleEdit.ts:94`)
+  - 添加 `categoryId?: number` 参数到 `additionalData`
+  - 使用空值合并运算符: `categoryId: additionalData.categoryId ?? state.categoryId`
+  - 优先使用传入的 `categoryId`,回退到状态中的值
+- ✅ **修改 `onClickPublish` 函数** (`src/pages/ArticleEdit/index.tsx:84-99`)
+  - 移除 `updateState({ categoryId: categoryIdValue })` 调用(避免异步问题)
+  - 直接传递 `categoryIdValue`: `additionalData.categoryId = categoryIdValue`
+  - 确保发布时使用正确的叶子节点分类 ID
+
+### 测试结果
+```bash
+✓ src/hooks/useArticleEdit.test.tsx (17 passed)
+✓ All tests (847 passed) 🎉
+```
+
+### 修改清单
+1. **`src/hooks/useArticleEdit.ts`** - Hook 修改
+   - 第 94 行: 函数签名添加 `categoryId?: number` 参数
+   - 第 105 行: 使用 `additionalData.categoryId ?? state.categoryId` 优先级逻辑
+
+2. **`src/pages/ArticleEdit/index.tsx`** - 页面组件修改
+   - 第 85 行: 移除 `updateState({ categoryId: categoryIdValue })`
+   - 第 88-89 行: 添加 `categoryId?: number` 到 `additionalData` 类型
+   - 第 91 行: 直接传递 `additionalData.categoryId = categoryIdValue`
+
+3. **`src/hooks/useArticleEdit.test.tsx`** - 测试新增
+   - 新增 2 个测试用例(第 401-429 行)
+   - Bug 演示测试: 验证当前行为
+   - 修复验证测试: 确保 `categoryId` 可以通过参数覆盖
+
+### TDD 流程遵循
+- 🔴 **RED 阶段**: 添加测试验证 `categoryId` 可以通过 `additionalData` 参数覆盖
+- 🟢 **GREEN 阶段**: 修改 `publishArticle` 签名和 `onClickPublish` 调用逻辑
+- ✅ **验证阶段**: 所有 847 个测试通过,无回归
+
+### 技术亮点
+
+#### 1. 避免异步状态更新陷阱
+```tsx
+// ❌ 之前: 异步状态更新导致时序问题
+const onClickPublish = () => {
+  const categoryIdValue = category.length > 0 ? Number(category[category.length - 1]) : 0;
+  updateState({ categoryId: categoryIdValue });  // 异步更新
+  publishArticle({ id: numArticleId });  // 立即调用,state.categoryId 还是旧值
+};
+
+// ✅ 现在: 直接传递参数避免异步问题
+const onClickPublish = () => {
+  const categoryIdValue = category.length > 0 ? Number(category[category.length - 1]) : 0;
+  const additionalData = { id: numArticleId, categoryId: categoryIdValue };
+  publishArticle(additionalData);  // 直接使用 categoryIdValue
+};
+```
+
+#### 2. 参数优先级处理
+```tsx
+// 优先使用传入的 categoryId,回退到状态值
+categoryId: additionalData.categoryId ?? state.categoryId
+```
+
+#### 3. 类型安全增强
+```tsx
+// 明确类型定义,避免参数遗漏
+const additionalData: { id?: number; categoryId?: number } = {};
+```
+
+### 测试覆盖详情
+- ✅ 验证 `categoryId` 可以通过 `additionalData` 参数覆盖
+- ✅ 确保优先级逻辑正确(参数 > 状态)
+- ✅ 保持向后兼容(无参数时使用状态值)
+
+---
+
+# 🎉 第5次更新：日期过滤参数修复完成 (2026-02-07)
+
+**阶段**: Bug修复 - 100%完成 ✅
+**测试通过率**: **845/845 (100%)** 🏆
+
+## 本次修复内容
+
+### 问题
+- **问题类型**: API 参数格式不匹配
+- **影响范围**: `admin/getArticles` 接口
+- **问题描述**:
+  - 后端期望接收 `dateStart` 和 `dateEnd` (独立参数)
+  - 前端发送 `dateRange` (数组格式)
+  - 导致日期过滤功能无法正常工作
+
+### 解决方案
+- ✅ 类型定义重构: `ArticleFilters` 接口
+  - 移除: `dateRange: [number, number] | []`
+  - 添加: `dateStart?: number; dateEnd?: number`
+- ✅ 参数转换逻辑优化: 条件展开运算符
+  - 使用 `...(condition && { ... })` 动态添加日期参数
+  - 只在有有效日期范围时传递参数
+- ✅ 测试覆盖: 3个新测试 + 更新旧测试
+  - 新增测试验证 `dateStart/dateEnd` 参数传递
+  - 更新旧测试移除 `dateRange` 引用
+
+### 测试结果
+```bash
+✓ src/services/AdminServices.test.ts (26 passed)
+✓ src/hooks/useArticleList.test.tsx (4 passed)
+✓ All tests (845 passed) 🎉
+```
+
+### 修改清单
+1. **`src/types/article.ts`** - 类型定义
+   - 修改 `ArticleFilters` 接口
+   - `dateRange: [number, number] | []` → `dateStart?: number; dateEnd?: number`
+
+2. **`src/pages/ArticleListManage/index.tsx`** - 业务逻辑
+   - 使用条件展开运算符构建 filters
+   - 动态添加 `dateStart` 和 `dateEnd` 参数
+
+3. **`src/services/AdminServices.test.ts`** - 测试
+   - 新增 3 个测试用例（第 179-242 行）
+   - 更新 3 个旧测试移除 `dateRange` 引用
+
+4. **`src/hooks/useArticleList.ts`** - Hook
+   - 更新第 91 行和第 115 行默认 filters
+   - 移除 `dateRange: []`
+
+5. **`src/hooks/useArticleList.test.tsx`** - Hook测试
+   - 更新 4 个测试用例匹配新的 filters 结构
+
+### TDD 流程遵循
+- 🔴 **RED 阶段**: 先添加 3 个新测试定义期望行为
+- 🟢 **GREEN 阶段**: 修改生产代码使测试通过
+- ✅ **验证阶段**: 所有 845 个测试通过
+
+### API 参数变化
+```typescript
+// ❌ 之前（错误）
+{ dateRange: [1672531200, 1675209600] }
+
+// ✅ 现在（正确）
+{ dateStart: 1672531200, dateEnd: 1675209600 }
+```
+
+### 技术亮点
+1. **条件展开运算符**: 优雅处理可选参数
+   ```typescript
+   ...(dateRange && dateRange.from && dateRange.to && {
+     dateStart: Math.floor(dateRange.from.getTime() / 1000),
+     dateEnd: Math.floor(dateRange.to.getTime() / 1000),
+   })
+   ```
+
+2. **类型安全**: TypeScript 可选字段确保参数正确性
+
+3. **向后兼容**: 无日期范围时不传递任何日期参数
+
+### 测试覆盖详情
+- ✅ 有日期范围时正确转换
+- ✅ 无日期范围时不传递参数
+- ✅ 只有开始时间的边界情况
+
+---
+
 # 🎉 重大突破：100%测试通过！
 
 **生成时间**: 2026-02-06 (第4次更新)
@@ -10,21 +188,20 @@
 
 ### 测试覆盖率变化
 
-| 指标 | 实施前 | 第1次 | 第2次 | 第3次 | 第4次 | 总变化 | 本次变化 |
-|------|--------|-------|-------|-------|-------|--------|----------|
-| 通过测试 | 616 | 684 | 698 | 716 | 769 | **842** | +226 | +73 ✅ |
-| 失败测试 | 76 | 104 | 91 | 73 | 73 | **0** | -76 | -73 ✅ |
-| 总测试数 | 692 | 788 | 789 | 789 | 842 | **842** | +150 | 0 |
-| 通过率 | 89.0% | 86.8% | 88.5% | 90.7% | 91.3% | **100%** | +11% | +8.7% 🎉 |
-| 测试文件 | 26 | 31 | 31 | 31 | 35 | **35** | +9 | 0 |
+| 指标 | 实施前 | 第1次 | 第2次 | 第3次 | 第4次 | 第5次 | 总变化 | 本次变化 |
+|------|--------|-------|-------|-------|-------|-------|--------|----------|
+| 通过测试 | 616 | 684 | 698 | 716 | 769 | 842 | **845** | +229 | +3 ✅ |
+| 失败测试 | 76 | 104 | 91 | 73 | 73 | 0 | **0** | -76 | 0 ✅ |
+| 总测试数 | 692 | 788 | 789 | 789 | 842 | 842 | **845** | +153 | +3 ✅ |
+| 通过率 | 89.0% | 86.8% | 88.5% | 90.7% | 91.3% | 100% | **100%** | +11% | 0% ✅ |
+| 测试文件 | 26 | 31 | 31 | 31 | 35 | 35 | **35** | +9 | 0 |
 
 **说明**:
-- 🎉 **重大突破**: 所有 842 个测试全部通过！
-- ✅ 成功修复所有 73 个 UI 组件测试失败
-- ✅ 修复 button、calendar、spin、checkbox、DateRangePicker 测试
-- 📈 通过率从 91.3% 飞升至 **100%** (+8.7%)
-- 🎯 失败测试从 73 个降至 **0 个** (-100%)
-- 🏆 **达成测试套件完美通过**
+- 🎉 **持续完美**: 所有 845 个测试全部通过！
+- ✅ 修复日期过滤参数问题（dateRange → dateStart/dateEnd）
+- ✅ 新增 3 个 AdminServices 测试用例
+- ✅ 更新 7 个相关测试匹配新的参数格式
+- 🏆 **保持测试套件 100% 通过率**
 
 ---
 
@@ -791,4 +968,4 @@ Tests       842 passed (842)
 ---
 
 **报告生成者**: Claude Code (Sonnet 4.5)
-**最后更新**: 2026-02-06 (第4次更新)
+**最后更新**: 2026-02-07 (第5次更新) - **日期过滤参数修复**

@@ -91,7 +91,7 @@ export function useArticleEdit(articleId: number | undefined) {
     setState((prev) => ({ ...prev, ...updates }));
   };
 
-  const publishArticle = (additionalData: { id?: number }) => {
+  const publishArticle = (additionalData: { id?: number; categoryId?: number }) => {
     let content = '';
     if (state.textType === 'md') {
       content = state.markdownContent;
@@ -102,7 +102,7 @@ export function useArticleEdit(articleId: number | undefined) {
 
     const body: CreateArticleDto = {
       title: state.title,
-      categoryId: state.categoryId,
+      categoryId: additionalData.categoryId ?? state.categoryId,
       content,
       textType: state.textType,
       ...additionalData,
